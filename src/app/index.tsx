@@ -17,14 +17,15 @@ export default function Index() {
 
   async function fetchPokemons() {
     try {
-      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=20")
+      // Gọi API lấy danh sách 20 Pokemon đầu tiên
+      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=20") 
 
-      const data = await response.json();
+      const data = await response.json(); 
 
-      //
+      // Gọi song song API lấy thông tin chi tiết từng Pokemon
       const detailedPokemons = await Promise.all(
         data.results.map(async (pokemon: any) => {
-          const res = await fetch(pokemon.url);
+          const res = await fetch(pokemon.url); 
           const details = await res.json();
           return {
             name: pokemon.name,
@@ -34,7 +35,7 @@ export default function Index() {
         })
       );
 
-      setPokemons(detailedPokemons);
+      setPokemons(detailedPokemons);  
 
     } catch (e) {
       console.log(e)
