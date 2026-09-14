@@ -1,14 +1,32 @@
 import { useEffect, useState } from "react";
-import { Image, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 interface Pokemon {
   name: string;
   image: string;
-  imageBack: string
+  imageBack: string;
+  types: PokemonType[]
+}
+
+interface PokemonType{
+  type:{
+    name: string,
+    url: string
+  }
+}
+
+const colorByType = {
+  grass: "green",
+  fire: "orange",
+  water: "blue",
+  bug: "lightgreen",
+  normal: "brown"
 }
 
 export default function Index() {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+
+  console.log(JSON.stringify(pokemons[0], null, 2));
 
   useEffect(() => {
      // fetch pokemons
@@ -31,6 +49,7 @@ export default function Index() {
             name: pokemon.name,
             image: details.sprites.front_default, // main sprite
             imageBack: details.sprites.back_default,
+            types: details.types
           };
         })
       );
@@ -42,10 +61,20 @@ export default function Index() {
     }
   }
   return (
-    <ScrollView>
+    <ScrollView 
+      contentContainerStyle={{
+        gap: 16,
+        padding:16
+      }}
+    >
       {pokemons.map((pokemon) => (
-        <View key={pokemon.name}>
-          <Text>{pokemon.name}</Text>
+        <View key={pokemon.name} style={{
+          // @ts-ignore
+            backgroundColor: colorByType[pokemon.types[0].type.name],
+            borderRadius: 20
+        }}>
+          <Text style={styles.name}>{pokemon.name}</Text>
+          <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
 
           <View style={{
             flexDirection: "row",
@@ -68,3 +97,17 @@ export default function Index() {
 }
 
 
+const styles = StyleSheet.create({
+  name:{
+    fontSize: 25,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+
+  type:{
+    fontSize: 15,
+    fontWeight:'bold',
+    color: 'gray',
+    textAlign: 'center'
+  }
+})
