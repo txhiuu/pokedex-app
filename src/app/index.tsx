@@ -76,6 +76,7 @@ export default function Index() {
     }
   }
   return (
+    //use FlatList instead of ScrollView
     <FlatList
       data={pokemons}
 
@@ -107,7 +108,7 @@ export default function Index() {
             </View>
             <Text style={styles.name}>{pokemon.name}</Text>
             <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
-             <Text style={styles.id}>{String(pokemon.id).padStart(3, "0")}</Text>
+             <Text style={styles.id}>{String(pokemon.id).padStart(3, "0")}</Text> //add id
           </View>
         </Link>
       )}
