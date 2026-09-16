@@ -97,7 +97,7 @@ export default function Index() {
             padding: 10,
             width: 170 
           }}>
-          <View >
+          <View>
             <View style={{
               flexDirection: "row",
             }}>
@@ -108,7 +108,7 @@ export default function Index() {
             </View>
             <Text style={styles.name}>{pokemon.name}</Text>
             <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
-             <Text style={styles.id}>{String(pokemon.id).padStart(3, "0")}</Text> //add id
+            <Text style={styles.id}>{String(pokemon.id).padStart(3, "0")}</Text>
           </View>
         </Link>
       )}

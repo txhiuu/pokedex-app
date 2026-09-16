@@ -1,20 +1,146 @@
 import { useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+
+interface Pokemon {
+  id: number;
+  image: string;
+  types: PokemonType[]
+}
+
+interface PokemonType{
+  type:{
+    name: string,
+    url: string
+  }
+}
+
+
+const colorByType: Record<string, string> = {
+  normal: "#A8A77A",
+  fire: "#EE8130",
+  water: "#6390F0",
+  electric: "#F7D02C",
+  grass: "#7AC74C",
+  ice: "#96D9D6",
+  fighting: "#C22E28",
+  poison: "#A33EA1",
+  ground: "#E2BF65",
+  flying: "#A98FF3",
+  psychic: "#F95587",
+  bug: "#A6B91A",
+  rock: "#B6A136",
+  ghost: "#735797",
+  dragon: "#6F35FC",
+  dark: "#705746",
+  steel: "#B7B7CE",
+  fairy: "#D685AD",
+};
 
 export default function Details() {
     const params = useLocalSearchParams()
 
-    console.log(params.name)
+     const pokemonName = Array.isArray(params.name) ? params.name[0] : params.name;
+
+    console.log(params.name);
+
+    const [pokemon, setPokemon] = useState<any>();
+
+    const [species, setSpecies] = useState<any>();
+
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+      fetchPokemonByName(pokemonName)
+    }, [pokemonName])
+
+    async function fetchPokemonByName(name: string) {
+      try {
+        const PokemonPromise = fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
+
+        const SpeciesPromise = fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`)
+
+        const [PokemonResponse, SpeciesResponse] = await Promise.all([
+          PokemonPromise,
+          SpeciesPromise
+        ]    
+        )
+
+        const [PokemonData, SpeciesData] = await Promise.all([
+          PokemonResponse.json(),
+          SpeciesResponse.json()
+        ])
+
+      setPokemon(PokemonData),
+      setSpecies(SpeciesData)
+
+      } catch (e) {
+        console.log(e)
+      }
+      finally{
+        setLoading(false);
+      }
+      if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={{ marginTop: 10, color: '#666' }}>Đang tải dữ liệu...</Text>
+            </View>
+        );
+      }
+     
+    }
+    // console.log(pokemon),
+    // console.log(species)
   return (
+    <>
+    
     <ScrollView 
       contentContainerStyle={{
         gap: 16,
-        padding:16
+        padding:16,
       }}
     >
+       <View style={styles.header}>
+        <Text style={styles.title}>
+          {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
+        </Text>
+        <Text style={styles.id}>{String(pokemon?.id).padStart(3, "0")}</Text>
+        <Image 
+            source={{uri: pokemon?.sprites?.other?.['official-artwork']?.front_default}}
+            style={{
+            // @ts-ignore
+            backgroundColor: colorByType[pokemon?.types[0].type?.name] + 90,
+            borderRadius: 20,
+            width: "100%",
+            aspectRatio: 1
+          }}
+        />
+      </View>
     </ScrollView>
+    </>
   )}
 
 const styles = StyleSheet.create({
-
+   header: {
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  id: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#666",
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 15
+  },
 })
