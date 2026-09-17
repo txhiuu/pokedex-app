@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Pokemon {
   id: number;
@@ -48,11 +48,22 @@ export default function Details() {
 
     const [species, setSpecies] = useState<any>();
 
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true);
+
+    const [activeTab, setActiveTab] = useState('Forms');
+
+    const tabs = ['Forms', 'Detail', 'Types', 'Stats'];
+
+    const formImages = [
+       pokemon?.sprites?.front_default, 
+       pokemon?.sprites?.other?.['official-artwork']?.front_default, 
+       pokemon?.sprites?.back_default, 
+    ];
 
     useEffect(() => {
       fetchPokemonByName(pokemonName)
     }, [pokemonName])
+
 
     async function fetchPokemonByName(name: string) {
       try {
@@ -94,7 +105,6 @@ export default function Details() {
     // console.log(species)
   return (
     <>
-    
     <ScrollView 
       contentContainerStyle={{
         gap: 16,
@@ -116,7 +126,49 @@ export default function Details() {
             aspectRatio: 1
           }}
         />
+      </View >
+
+      //Tabs Bar
+      <View style={{ flexDirection: 'row', gap: 15, marginLeft: 10}}>
+           {tabs.map((tab) => (
+        <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+        <Text style={{ 
+            fontWeight: activeTab === tab ? 'bold' : 'normal',
+            color: activeTab === tab ? 'black' : '#999',
+            fontSize: 20
+        }}>
+        {tab}
+        </Text>
+        </TouchableOpacity>
+      ))}
       </View>
+
+      //Content of TB
+      {activeTab === 'Forms' && (
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}
+      >
+        {formImages.map((formimage, index) => (
+          <View key={index}     
+                style={{
+                  height: 90,
+                  width: 90,
+                  borderRadius: 20,
+                  backgroundColor: (colorByType[pokemon?.types[0]?.type?.name]) + 90,   
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+          >
+            <Image source={{ uri: formimage }}  
+                style={{
+                  width: '80%',
+                  height: '80%',
+                }}
+              resizeMode="contain"
+            />
+      </View>
+    ))}
+  </ScrollView>
+)}
     </ScrollView>
     </>
   )}
@@ -124,7 +176,7 @@ export default function Details() {
 const styles = StyleSheet.create({
    header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
     marginTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',

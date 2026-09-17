@@ -50,7 +50,7 @@ export default function Index() {
   async function fetchPokemons() {
     try {
       // Gọi API lấy danh sách 20 Pokemon đầu tiên
-      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=20") 
+      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=300") 
 
       const data = await response.json(); 
 
