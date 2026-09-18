@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Pokemon {
   id: number;
@@ -40,30 +40,42 @@ const colorByType: Record<string, string> = {
 export default function Details() {
     const params = useLocalSearchParams()
 
-     const pokemonName = Array.isArray(params.name) ? params.name[0] : params.name;
+    const pokemonName = Array.isArray(params.name) ? params.name[0] : params.name;
 
-    console.log(params.name);
+      console.log(params.name);
 
     const [pokemon, setPokemon] = useState<any>();
 
     const [species, setSpecies] = useState<any>();
-
-    const [loading, setLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState('Forms');
 
     const tabs = ['Forms', 'Detail', 'Types', 'Stats'];
 
     const formImages = [
-       pokemon?.sprites?.front_default, 
-       pokemon?.sprites?.other?.['official-artwork']?.front_default, 
-       pokemon?.sprites?.back_default, 
+      pokemon?.sprites?.front_default, 
+      pokemon?.sprites?.other?.['official-artwork']?.front_default, 
+      pokemon?.sprites?.back_default, 
     ];
+
+    const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
+
+    const englishEntry = species?.flavor_text_entries?.find(
+      (entry: any) => entry.language.name === 'en'
+    );
+
+    const description = englishEntry ? englishEntry.flavor_text.replace(/[\n\f]/g, ' ') : "Loading...";
+       
 
     useEffect(() => {
       fetchPokemonByName(pokemonName)
     }, [pokemonName])
-
+ 
+    useEffect(() => {
+      if (pokemon) {
+        setSelectedImage(pokemon?.sprites?.other?.['official-artwork']?.front_default);
+      }
+    }, [pokemon]);
 
     async function fetchPokemonByName(name: string) {
       try {
@@ -87,37 +99,26 @@ export default function Details() {
 
       } catch (e) {
         console.log(e)
-      }
-      finally{
-        setLoading(false);
-      }
-      if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#0000ff" />
-            <Text style={{ marginTop: 10, color: '#666' }}>Đang tải dữ liệu...</Text>
-            </View>
-        );
-      }
-     
+      }    
     }
-    // console.log(pokemon),
-    // console.log(species)
+    
+   
+
   return (
     <>
-    <ScrollView 
-      contentContainerStyle={{
-        gap: 16,
-        padding:16,
-      }}
-    >
-       <View style={styles.header}>
+    <ScrollView contentContainerStyle={{
+      gap: 16,
+      padding:16,
+    }}>
+      <View style={styles.header}>
         <Text style={styles.title}>
-          {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
+            {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
         </Text>
-        <Text style={styles.id}>{String(pokemon?.id).padStart(3, "0")}</Text>
+        <Text style={styles.id}>
+            {String(pokemon?.id).padStart(3, "0")}
+        </Text>
         <Image 
-            source={{uri: pokemon?.sprites?.other?.['official-artwork']?.front_default}}
+            source={{uri: selectedImage}}
             style={{
             // @ts-ignore
             backgroundColor: colorByType[pokemon?.types[0].type?.name] + 90,
@@ -128,47 +129,135 @@ export default function Details() {
         />
       </View >
 
-      //Tabs Bar
+      {/* Tabs Bar */}
       <View style={{ flexDirection: 'row', gap: 15, marginLeft: 10}}>
-           {tabs.map((tab) => (
+            {tabs.map((tab) => (
         <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-        <Text style={{ 
+          <Text style={{ 
             fontWeight: activeTab === tab ? 'bold' : 'normal',
             color: activeTab === tab ? 'black' : '#999',
             fontSize: 20
-        }}>
-        {tab}
-        </Text>
+          }}>
+          {tab}
+          </Text>
         </TouchableOpacity>
-      ))}
+            ))}
       </View>
 
-      //Content of TB
+
+      {/* Content of TB */}
       {activeTab === 'Forms' && (
-      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}
-      >
-        {formImages.map((formimage, index) => (
-          <View key={index}     
-                style={{
-                  height: 90,
-                  width: 90,
-                  borderRadius: 20,
-                  backgroundColor: (colorByType[pokemon?.types[0]?.type?.name]) + 90,   
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-          >
-            <Image source={{ uri: formimage }}  
-                style={{
-                  width: '80%',
-                  height: '80%',
-                }}
-              resizeMode="contain"
-            />
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}>
+
+        {formImages.map((formimage, index) => {
+      // Check isImage?
+          const isSelected = formimage === selectedImage;
+
+      return (
+        <TouchableOpacity key={index} onPress={() => setSelectedImage(formimage)} 
+          style={{
+            height: 90,
+            width: 90,
+            borderRadius: 20,
+            backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + '90',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: isSelected ? 2 : 0,
+            borderColor: isSelected ? 'white' : 'transparent',
+          }}
+        >
+          <Image source={{ uri: formimage }}
+            style={{
+              width: '80%',
+              height: '80%',
+              opacity: isSelected ? 1 : 0.4, 
+            }}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      );
+      })}
+        </ScrollView>
+      )}
+
+
+    {/* Tabs Forms */}
+    {activeTab === 'Forms' && (
+    <View style={{ marginTop: 20, marginBottom: 30 }}>
+  
+      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 }}>
+        Mega Evolution
+      </Text> 
+  
+      <Text style={{ fontSize: 15, lineHeight: 24, color: '#555' }}>
+        {description}
+      </Text>
+    </View>
+    )}
+
+
+    {/*Tabs Detail */}
+    {activeTab === 'Detail' && (
+      <View style={{ marginTop: 10, gap: 12 }}>
+
+      {/*Height */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+        <Text style={{ color: '#999', fontSize: 15 }}>
+          Height
+        </Text>
+
+        <Text style={{ fontWeight: '600', fontSize: 15 }}>
+        {(pokemon?.height / 10).toFixed(1)} m
+        </Text>
       </View>
-    ))}
-  </ScrollView>
+
+    {/*Weight */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+        <Text style={{ color: '#999', fontSize: 15 }}>
+          Weight
+        </Text>
+
+        <Text style={{ fontWeight: '600', fontSize: 15 }}>
+        {(pokemon?.weight / 10).toFixed(1)} kg
+        </Text>
+      </View>
+
+    {/*Base Experience */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+        <Text style={{ color: '#999', fontSize: 15 }}>
+          Base Experience
+        </Text>
+
+        <Text style={{ fontWeight: '600', fontSize: 15 }}>
+          {pokemon?.base_experience}
+        </Text>
+      </View>
+
+    {/* Abilities */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+        <Text style={{ color: '#999', fontSize: 15 }}>
+          Abilities
+        </Text>
+
+        <Text style={{ fontWeight: '600', fontSize: 15, textAlign: 'right', flex: 1 }}>
+          {pokemon?.abilities?.map((item: any) => item.ability.name).join(', ')}
+        </Text>
+      </View>
+  </View>
 )}
+
+
+
+    {/* Tabs Types */}
+    {activeTab === 'Types' && (
+      <View style={{ marginTop: 10, gap: 12 }} >
+        <Text>{pokemon?.type[0].type.name}</Text>
+      </View>
+    )}
     </ScrollView>
     </>
   )}
