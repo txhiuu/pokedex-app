@@ -50,7 +50,7 @@ export default function Details() {
 
     const [activeTab, setActiveTab] = useState('Forms');
 
-    const tabs = ['Forms', 'Detail', 'Types', 'Stats'];
+    const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location'];
 
     const formImages = [
       pokemon?.sprites?.front_default, 
@@ -66,6 +66,51 @@ export default function Details() {
 
     const description = englishEntry ? englishEntry.flavor_text.replace(/[\n\f]/g, ' ') : "Loading...";
        
+    const statsData = pokemon?.stats?.map((item: any) => {
+    
+    const statNames: Record<string, string> = {
+      'hp': 'HP',
+      'attack': 'Attack',
+      'defense': 'Defense',
+      'special-attack': 'Sp. Atk',
+      'special-defense': 'Sp. Def',
+      'speed': 'Speed',
+    };
+
+    const displayName = statNames[item.stat.name] || item.stat.name;
+  
+    
+    const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171'; // Màu xanh/đỏ
+
+    return {
+      name: displayName,
+      value: item.base_stat,
+      color: barColor,
+    };
+    });
+    
+    const totalStats = pokemon?.stats?.reduce((sum: any, item: any) => sum + item.base_stat, 0);
+
+    // push vao statsData
+    statsData?.push({
+      name: 'Total',
+      value: totalStats,
+      color: '#4ADE80', 
+      isTotal: true,
+    });
+
+
+    
+    const movesData = pokemon?.moves?.map((item: any) => {
+
+    const rawName = item.move.name;
+   
+    const cleanName = rawName.replace(/-/g, ' '); 
+   
+    const capitalizedName = cleanName.replace(/\b\w/g, (char:any) => char.toUpperCase());
+    return capitalizedName;
+  }).slice(0, 30) || []; 
+
 
     useEffect(() => {
       fetchPokemonByName(pokemonName)
@@ -143,7 +188,6 @@ export default function Details() {
         </TouchableOpacity>
             ))}
       </View>
-
 
       {/* Content of TB */}
       {activeTab === 'Forms' && (
@@ -251,13 +295,72 @@ export default function Details() {
 )}
 
 
+    {/* Tabs Stats */}
+    {activeTab === 'Stats' && (
+  <View style={{ marginTop: 10, gap: 12 }}>
+    {statsData?.map((stat: any, index: any) => (
+      <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        
+        <Text style={{ width: 70, color: '#999', fontSize: 14 }}>
+          {stat.name}
+        </Text>
 
-    {/* Tabs Types */}
-    {activeTab === 'Types' && (
-      <View style={{ marginTop: 10, gap: 12 }} >
-        <Text>{pokemon?.type[0].type.name}</Text>
+        <Text style={{ width: 40, fontWeight: 'bold', fontSize: 14 }}>
+          {stat.value}
+        </Text>
+
+        <View style={{ 
+          flex: 1, 
+          height: 6, 
+          backgroundColor: '#E5E7EB',
+          borderRadius: 3,
+          overflow: 'hidden',
+          marginLeft: 10 
+        }}>
+          {/* Thanh màu chạy bên trong */}
+          <View style={{
+            
+            width: `${(stat.value / 255) * 100}%`, 
+            height: '100%',
+            backgroundColor: stat.color,
+            borderRadius: 3,
+
+          }} />
+        </View>
+
       </View>
-    )}
+    ))}
+  </View>
+)}
+
+
+    {activeTab === 'Moves' && (
+    <View style={{ 
+      marginTop: 10, 
+      flexDirection: 'row', 
+      flexWrap: 'wrap',     
+      gap: 8              
+    }}>
+      
+    {movesData.map((moveName:any, index:any) => (
+      <View 
+        key={index}
+        style={{
+          backgroundColor: '#F3F4F6',
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 20, 
+          borderWidth: 1,
+          borderColor: '#E5E7EB',
+        }}
+      >
+        <Text style={{ color: '#4B5563', fontSize: 13 }}>
+          {moveName}
+        </Text>
+      </View>
+    ))}
+  </View>
+)}
     </ScrollView>
     </>
   )}
