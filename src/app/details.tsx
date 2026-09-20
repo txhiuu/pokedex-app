@@ -48,6 +48,8 @@ export default function Details() {
 
     const [species, setSpecies] = useState<any>();
 
+    const [locations, setLocations] = useState<any>()
+
     const [activeTab, setActiveTab] = useState('Forms');
 
     const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location'];
@@ -68,19 +70,19 @@ export default function Details() {
        
     const statsData = pokemon?.stats?.map((item: any) => {
     
-    const statNames: Record<string, string> = {
-      'hp': 'HP',
-      'attack': 'Attack',
-      'defense': 'Defense',
-      'special-attack': 'Sp. Atk',
-      'special-defense': 'Sp. Def',
-      'speed': 'Speed',
-    };
+      const statNames: Record<string, string> = {
+        'hp': 'HP',
+        'attack': 'Attack',
+        'defense': 'Defense',
+        'special-attack': 'Sp. Atk',
+        'special-defense': 'Sp. Def',
+        'speed': 'Speed',
+      };
 
-    const displayName = statNames[item.stat.name] || item.stat.name;
+      const displayName = statNames[item.stat.name] || item.stat.name;
   
     
-    const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171'; // Màu xanh/đỏ
+      const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171'; // Màu xanh/đỏ
 
     return {
       name: displayName,
@@ -103,13 +105,32 @@ export default function Details() {
     
     const movesData = pokemon?.moves?.map((item: any) => {
 
-    const rawName = item.move.name;
+      const rawName = item.move.name;
    
-    const cleanName = rawName.replace(/-/g, ' '); 
+      const cleanName = rawName.replace(/-/g, ' '); 
    
-    const capitalizedName = cleanName.replace(/\b\w/g, (char:any) => char.toUpperCase());
+      const capitalizedName = cleanName.replace(/\b\w/g, (char:any) => char.toUpperCase());
     return capitalizedName;
   }).slice(0, 30) || []; 
+
+    const locationsData = locations?.map((item: any) => {
+  
+      const rawName = item.location_area.name;
+
+      const cleanName = rawName.replace(/-/g, ' ');
+
+      const capitalizedName = cleanName.replace(/\b\w/g, (char: any) => char.toUpperCase());
+
+
+      const maxChance = Math.max(
+        ...item.version_details.map((v: any) => v.max_chance)
+      );
+
+    return {
+      name: capitalizedName,
+      chance: maxChance, 
+    };
+    }) || [];
 
 
     useEffect(() => {
@@ -128,19 +149,24 @@ export default function Details() {
 
         const SpeciesPromise = fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`)
 
-        const [PokemonResponse, SpeciesResponse] = await Promise.all([
+        const LocationPromise = fetch(`https://pokeapi.co/api/v2/pokemon/${name}/encounters`)
+
+        const [PokemonResponse, SpeciesResponse, LocationResponse] = await Promise.all([
           PokemonPromise,
-          SpeciesPromise
+          SpeciesPromise,
+          LocationPromise
         ]    
         )
 
-        const [PokemonData, SpeciesData] = await Promise.all([
+        const [PokemonData, SpeciesData, LocationData] = await Promise.all([
           PokemonResponse.json(),
-          SpeciesResponse.json()
+          SpeciesResponse.json(),
+          LocationResponse.json()
         ])
 
       setPokemon(PokemonData),
-      setSpecies(SpeciesData)
+      setSpecies(SpeciesData),
+      setLocations(LocationData)
 
       } catch (e) {
         console.log(e)
@@ -160,7 +186,7 @@ export default function Details() {
             {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
         </Text>
         <Text style={styles.id}>
-            {String(pokemon?.id).padStart(3, "0")}
+            {String(pokemon?.id).padStart(3, "#0")}
         </Text>
         <Image 
             source={{uri: selectedImage}}
@@ -359,6 +385,53 @@ export default function Details() {
         </Text>
       </View>
     ))}
+  </View>
+)}
+
+    {/* Tabs Location */}
+    {activeTab === 'Location' && (
+  <View style={{ marginTop: 10 }}>
+    {locationsData.length === 0 ? (
+      <Text style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: 20 }}>
+        Pokemon này không xuất hiện trong tự nhiên.
+      </Text>
+    ) : (
+      <View style={{ gap: 10 }}>
+        {locationsData.map((loc: any, index:any) => (
+          <View 
+            key={index}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#F3F4F6',
+              padding: 12,
+              borderRadius: 10,
+            }}
+          >
+           
+            <Text style={{ fontSize: 16, marginRight: 8 }}>📍</Text>
+            
+            
+            <Text style={{ color: '#4B5563', fontSize: 14, flex: 1 }}>
+              {loc.name}
+            </Text>
+
+            {/* Tỉ lệ gặp*/}
+            <View style={{
+              backgroundColor: '#DCFCE7',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 12,
+              marginLeft: 8,
+            }}>
+              <Text style={{ color: '#16A34A', fontSize: 12, fontWeight: '600' }}>
+                {loc.chance}%
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    )}
   </View>
 )}
     </ScrollView>
