@@ -40,7 +40,10 @@ const colorByType: Record<string, string> = {
 export default function Index() {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
 
+  const [searchText, setSearchText] = useState('');
+
   console.log(JSON.stringify(pokemons[0], null, 2));
+
 
   useEffect(() => {
      // fetch pokemons
@@ -50,7 +53,7 @@ export default function Index() {
   async function fetchPokemons() {
     try {
       // Gọi API lấy danh sách 20 Pokemon đầu tiên
-      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=300") 
+      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=100") 
 
       const data = await response.json(); 
 
@@ -88,6 +91,8 @@ export default function Index() {
         gap: 16, 
         padding: 16,
       }}
+      
+
       renderItem={({ item: pokemon }) => (
         <Link key={pokemon.name} href={{pathname: "/details", params: {name: pokemon.name}}}
           style={{

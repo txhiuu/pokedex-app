@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -132,6 +133,14 @@ export default function Details() {
     };
     }) || [];
 
+    const heldItemsData = pokemon?.held_items?.map((item: any) => {
+
+      const rawName = item.item.name;
+
+      const cleanName = rawName.replace(/-/g, ' '); 
+    return cleanName.replace(/\b\w/g, (char: string) => char.toUpperCase());
+  }) || [];
+
 
     useEffect(() => {
       fetchPokemonByName(pokemonName)
@@ -142,6 +151,7 @@ export default function Details() {
         setSelectedImage(pokemon?.sprites?.other?.['official-artwork']?.front_default);
       }
     }, [pokemon]);
+
 
     async function fetchPokemonByName(name: string) {
       try {
@@ -180,13 +190,14 @@ export default function Details() {
     <ScrollView contentContainerStyle={{
       gap: 16,
       padding:16,
+      backgroundColor:"#dbd8d8"
     }}>
       <View style={styles.header}>
         <Text style={styles.title}>
             {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
         </Text>
         <Text style={styles.id}>
-            {String(pokemon?.id).padStart(3, "#0")}
+            {String(pokemon?.id).padStart(3, "0")}
         </Text>
         <Image 
             source={{uri: selectedImage}}
@@ -409,7 +420,7 @@ export default function Details() {
             }}
           >
            
-            <Text style={{ fontSize: 16, marginRight: 8 }}>📍</Text>
+            <Ionicons name="location-outline" size={18} color="#4B5563" style={{ marginRight: 8 }} />
             
             
             <Text style={{ color: '#4B5563', fontSize: 14, flex: 1 }}>
@@ -432,7 +443,34 @@ export default function Details() {
         ))}
       </View>
     )}
+    {/* heldItems */}
+    {heldItemsData.length > 0 && (
+      <View style={{ marginTop: 20 }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#1a1a1a' }}>
+
+          🎁 Vật phẩm có thể cầm
+
+        </Text>
+        {heldItemsData.map((itemName: any, index: any) => (
+          <View key={index} style={{ 
+
+            backgroundColor: '#fff1d4',
+            padding: 10, 
+            borderRadius: 10, 
+            marginBottom: 8 
+
+          }}>
+            <Text style={{ color: '#B45309', fontWeight: '600' }}>
+
+              {itemName}
+
+            </Text>
+          </View>
+        ))}
+      </View>
+    )}
   </View>
+  
 )}
     </ScrollView>
     </>
