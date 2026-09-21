@@ -53,16 +53,37 @@ export default function Index() {
   setSearchText(''); 
 };
 
+  const [offset, setOffset] = useState(0);
+
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadMore = () => {
+  
+    if (isLoadingMore) return;
+
+    const LIMIT = 150;
+  //gọi từng 20 poke/1 lần
+  //const newOffset = offset + 20;
+    const newOffset = offset + LIMIT;
+  
+
+    setOffset(newOffset);
+
+  //gọi API với offset mới
+    fetchPokemons(newOffset, true);
+  };
+
 
   useEffect(() => {
      // fetch pokemons
-     fetchPokemons();
+     fetchPokemons(0);
   },[])
 
-  async function fetchPokemons() {
+  async function fetchPokemons(currentOffset: number, isLoadMore = false) {
+    if (isLoadingMore) setIsLoadingMore(true);
     try {
       // Gọi API lấy danh sách 20 Pokemon đầu tiên
-      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=100") 
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/?limit=150&offset=${currentOffset}`) 
 
       const data = await response.json(); 
 
@@ -83,6 +104,14 @@ export default function Index() {
 
       setPokemons(detailedPokemons);  
 
+
+      if (isLoadingMore) {
+        setPokemons((prev) => [...prev, ...detailedPokemons]);
+      } 
+      else {
+        setPokemons(detailedPokemons);
+      }
+
     } catch (e) {
       console.log(e)
     }
@@ -100,6 +129,9 @@ export default function Index() {
         gap: 16, 
         padding: 16,
       }}
+
+       onEndReached={loadMore}
+       onEndReachedThreshold={0.5}
       
       ListHeaderComponent={
       <View style={{
@@ -113,7 +145,7 @@ export default function Index() {
         borderColor: "black",
         width: "80%"
       }}>
-        <Ionicons name="search" size={20} color="#9CA3AF" />
+        <Ionicons name="search" size={20} color="black" />
         <TextInput
           placeholder="Name or number"
           placeholderTextColor="#9CA3AF"
