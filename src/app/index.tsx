@@ -1,6 +1,7 @@
-import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+import { FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
 
 interface Pokemon {
   id: number;
@@ -43,6 +44,14 @@ export default function Index() {
   const [searchText, setSearchText] = useState('');
 
   console.log(JSON.stringify(pokemons[0], null, 2));
+
+  const handleSearch = () => {
+    if (!searchText.trim()) return;
+   
+    router.push(`/details?name=${searchText.toLowerCase().trim()}`);
+  
+  setSearchText(''); 
+};
 
 
   useEffect(() => {
@@ -92,6 +101,29 @@ export default function Index() {
         padding: 16,
       }}
       
+      ListHeaderComponent={
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 20,
+        paddingHorizontal: 12,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: "black",
+        width: "80%"
+      }}>
+        <Ionicons name="search" size={20} color="#9CA3AF" />
+        <TextInput
+          placeholder="Name or number"
+          placeholderTextColor="#9CA3AF"
+          style={{ flex: 1, marginLeft: 8, color: '#1F2937', fontSize: 16 }}
+          value={searchText}
+          onChangeText={setSearchText}
+          onSubmitEditing={handleSearch}
+        />
+      </View>
+    }
 
       renderItem={({ item: pokemon }) => (
         <Link key={pokemon.name} href={{pathname: "/details", params: {name: pokemon.name}}}
