@@ -168,6 +168,12 @@ export default function Details() {
         ]    
         )
 
+        if (!PokemonResponse.ok) {
+
+          throw new Error("Không tìm thấy Pokemon!");
+          
+        }
+
         const [PokemonData, SpeciesData, LocationData] = await Promise.all([
           PokemonResponse.json(),
           SpeciesResponse.json(),
@@ -189,8 +195,7 @@ export default function Details() {
     <>
     <ScrollView contentContainerStyle={{
       gap: 16,
-      padding:16,
-      backgroundColor:"#dbd8d8"
+      padding:16
     }}>
       <View style={styles.header}>
         <Text style={styles.title}>

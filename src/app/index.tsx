@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface Pokemon {
   id: number;
@@ -43,7 +43,7 @@ export default function Index() {
 
   const [searchText, setSearchText] = useState('');
 
-  console.log(JSON.stringify(pokemons[0], null, 2));
+ // console.log(JSON.stringify(pokemons[0], null, 2));
 
   const handleSearch = () => {
     if (!searchText.trim()) return;
@@ -53,37 +53,58 @@ export default function Index() {
   setSearchText(''); 
 };
 
-  const [offset, setOffset] = useState(0);
+//api_load
+  // const [offset, setOffset] = useState(0);
 
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const loadMore = () => {
+//   const loadMore = () => {
   
-    if (isLoadingMore) return;
+//     if (isLoadingMore) setIsLoadingMore(true);
 
-    const LIMIT = 150;
-  //gọi từng 20 poke/1 lần
-  //const newOffset = offset + 20;
-    const newOffset = offset + LIMIT;
+//    // const LIMIT = 150;
+//   //gọi từng 20 poke/1 lần
+//   const newOffset = offset + 20;
+//     //const newOffset = offset + LIMIT;
   
 
-    setOffset(newOffset);
+//     setOffset(newOffset);
 
-  //gọi API với offset mới
-    fetchPokemons(newOffset, true);
-  };
+//   //gọi API với offset mới
+//     fetchPokemons(newOffset, true);
+//   };
+// //
 
+  const [sortBy, setSortBy] = useState<'name' | 'id'>('id');
+
+  const [sortOrder, setSortOrder] = useState<'up' | 'down'>('down');
+
+  const [showSortMenu, setShowSortMenu] = useState(false); // Ẩn menu lúc đầu
+
+  const sortedPokemons = [...pokemons].sort((a, b) => {
+
+    let comparison = 0;
+  // Bước 1: So sánh theo tiêu chí (name hoặc id)
+    if (sortBy === 'name') {
+      comparison = a.name.localeCompare(b.name);
+    } else {
+      comparison = a.id - b.id;
+    }
+
+  // Bước 2: Đảo ngược kết quả nếu là giảm dần (desc)
+  return sortOrder === 'up' ? comparison : -comparison;
+  });
 
   useEffect(() => {
      // fetch pokemons
-     fetchPokemons(0);
+     fetchPokemons();
   },[])
 
-  async function fetchPokemons(currentOffset: number, isLoadMore = false) {
-    if (isLoadingMore) setIsLoadingMore(true);
+  async function fetchPokemons() {
+    // if (isLoadingMore) setIsLoadingMore(true);
     try {
       // Gọi API lấy danh sách 20 Pokemon đầu tiên
-      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/?limit=150&offset=${currentOffset}`) 
+      const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=100") 
 
       const data = await response.json(); 
 
@@ -104,22 +125,23 @@ export default function Index() {
 
       setPokemons(detailedPokemons);  
 
-
-      if (isLoadingMore) {
-        setPokemons((prev) => [...prev, ...detailedPokemons]);
-      } 
-      else {
-        setPokemons(detailedPokemons);
-      }
-
+//Nếu là "tải thêm" thì NỐI vào mảng cũ, nếu là "lần đầu" thì THAY THẾ
+      // if (isLoadingMore) {
+      //   setPokemons((prev) => [...prev, ...detailedPokemons]);
+      // } 
+      // else {
+      //   setPokemons(detailedPokemons);
+      // }
+//
     } catch (e) {
       console.log(e)
     }
   }
   return (
-    //use FlatList instead of ScrollView
+    <>
+    {/* //use FlatList instead of ScrollView */}
     <FlatList
-      data={pokemons}
+      data={sortedPokemons}
 
       numColumns={2}
       columnWrapperStyle={{
@@ -129,31 +151,49 @@ export default function Index() {
         gap: 16, 
         padding: 16,
       }}
-
-       onEndReached={loadMore}
-       onEndReachedThreshold={0.5}
-      
+//
+      //  onEndReached={loadMore}
+      //  onEndReachedThreshold={0.5}
+//      
       ListHeaderComponent={
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F3F4F6',
-        borderRadius: 20,
-        paddingHorizontal: 12,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: "black",
-        width: "80%"
-      }}>
-        <Ionicons name="search" size={20} color="black" />
-        <TextInput
-          placeholder="Name or number"
-          placeholderTextColor="#9CA3AF"
-          style={{ flex: 1, marginLeft: 8, color: '#1F2937', fontSize: 16 }}
-          value={searchText}
-          onChangeText={setSearchText}
-          onSubmitEditing={handleSearch}
-        />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <View style={{ 
+          flex: 1, 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          backgroundColor: '#F3F4F6',
+          borderRadius: 20, 
+          paddingHorizontal: 12, 
+          borderWidth: 1,
+          borderColor: "black" 
+        }}>
+
+          <Ionicons name="search" size={20} color="#9CA3AF" />
+
+          <TextInput
+            placeholder="Name or number"
+            placeholderTextColor="#9CA3AF"
+            style={{ flex: 1, marginLeft: 8, color: '#1F2937', fontSize: 16 }}
+            value={searchText}
+            onChangeText={setSearchText}
+            onSubmitEditing={handleSearch}
+          />
+        </View>
+
+      <TouchableOpacity 
+        onPress={() => setShowSortMenu(!showSortMenu)}
+        style={{
+          backgroundColor: '#5B4B8A',
+          padding: 12,
+          borderRadius: 15,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+
+        <Ionicons name="options-outline" size={20} color="white" />
+
+      </TouchableOpacity>
       </View>
     }
 
@@ -182,6 +222,197 @@ export default function Index() {
         </Link>
       )}
     />
+    
+    
+{/* ==================== MODAL SẮP XẾP ==================== */}
+      <Modal
+        visible={showSortMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSortMenu(false)}
+      >
+  
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            alignItems: 'flex-end',
+          }}
+          activeOpacity={1}
+          onPress={() => setShowSortMenu(false)}
+        >     
+    {/* Hộp Menu chính */}
+          <View
+            style={{
+              marginTop: 130, 
+              marginRight: 16,
+              backgroundColor: 'white',
+              borderRadius: 16,
+              paddingVertical: 8,
+              paddingHorizontal: 4,
+              width: 220,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 8,
+            }}
+          >
+      {/* ===== NHÓM 1: SẮP XẾP THEO TÊN ===== */}
+            <Text
+              style={{
+                fontSize: 11,
+                color: '#9CA3AF',
+                fontWeight: '700',
+                paddingHorizontal: 12,
+                paddingTop: 8,
+                paddingBottom: 6,
+                letterSpacing: 0.5,
+              }}
+            >
+
+           THEO TÊN
+
+            </Text>
+
+      {/* Tên A → Z */}
+            <TouchableOpacity 
+              onPress={() => {
+                setSortBy('name');
+                setSortOrder('up');
+                setShowSortMenu(false);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                gap: 12,
+                borderRadius: 10,
+                marginHorizontal: 4,
+                backgroundColor:
+                sortBy === 'name' && sortOrder === 'up' ? '#F3F4F6' : 'transparent',
+              }}
+            >
+              <Ionicons name="arrow-up" size={16} color="#5B4B8A" />
+              <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+
+                Tên (A → Z)
+
+              </Text>
+            </TouchableOpacity>
+
+      {/* Tên Z → A */}
+            <TouchableOpacity
+              onPress={() => {
+                setSortBy('name');
+                setSortOrder('down');
+                setShowSortMenu(false);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                gap: 12,
+                borderRadius: 10,
+                marginHorizontal: 4,
+                backgroundColor:
+                sortBy === 'name' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+              }}
+            >
+              <Ionicons name="arrow-down" size={16} color="#5B4B8A" />
+              <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+
+                Tên (Z → A)
+
+              </Text>
+            </TouchableOpacity>
+
+      {/* Đường kẻ ngăn cách */}
+            <View
+              style={{
+                height: 1,
+                  backgroundColor: '#F3F4F6',
+                  marginVertical: 6,
+                  marginHorizontal: 12,
+              }}
+            />
+
+      {/* ===== NHÓM 2: SẮP XẾP THEO ID ===== */}
+            <Text
+              style={{
+                fontSize: 11,
+                color: '#9CA3AF',
+                fontWeight: '700',
+                paddingHorizontal: 12,
+                paddingTop: 8,
+                paddingBottom: 6,
+                letterSpacing: 0.5,
+              }}
+            >
+
+            THEO ID
+
+            </Text>
+
+      {/* ID Tăng dần */}
+          <TouchableOpacity
+            onPress={() => {
+              setSortBy('id');
+              setSortOrder('up');
+              setShowSortMenu(false);
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              gap: 12,
+              borderRadius: 10,
+              marginHorizontal: 4,
+              backgroundColor:
+              sortBy === 'id' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+            }}
+          >
+            <Ionicons name="arrow-up" size={16} color="#5B4B8A" />
+            <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+
+              ID (Tăng dần)
+
+            </Text>
+          </TouchableOpacity>
+
+      {/* ID Giảm dần */}
+          <TouchableOpacity
+            onPress={() => {
+              setSortBy('id');
+              setSortOrder('down');
+              setShowSortMenu(false);
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              gap: 12,
+              borderRadius: 10,
+              marginHorizontal: 4,
+              backgroundColor:
+              sortBy === 'id' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+            }}
+          >
+            <Ionicons name="arrow-down" size={16} color="#5B4B8A" />
+            <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+
+              ID (Giảm dần)
+
+            </Text>
+          </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+</Modal>
+    </>
   );
 }
     
