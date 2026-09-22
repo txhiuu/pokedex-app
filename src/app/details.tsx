@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -193,6 +194,12 @@ export default function Details() {
 
   return (
     <>
+    <LinearGradient
+      colors={['#EEF2FF', '#E0E7FF']} 
+      start={{ x: 0, y: 0 }} 
+      end={{ x: 0, y: 1 }} 
+      style={{ flex: 1 }} 
+    >
     <ScrollView contentContainerStyle={{
       gap: 16,
       padding:16
@@ -478,6 +485,7 @@ export default function Details() {
   
 )}
     </ScrollView>
+    </LinearGradient>
     </>
   )}
 

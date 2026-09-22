@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -84,14 +85,13 @@ export default function Index() {
   const sortedPokemons = [...pokemons].sort((a, b) => {
 
     let comparison = 0;
-  // Bước 1: So sánh theo tiêu chí (name hoặc id)
+  
     if (sortBy === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else {
       comparison = a.id - b.id;
     }
 
-  // Bước 2: Đảo ngược kết quả nếu là giảm dần (desc)
   return sortOrder === 'up' ? comparison : -comparison;
   });
 
@@ -139,6 +139,12 @@ export default function Index() {
   }
   return (
     <>
+    <LinearGradient
+      colors={['#FEF2F2', '#CFFAFE']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}  
+      style={{ flex: 1 }}  
+    >
     {/* //use FlatList instead of ScrollView */}
     <FlatList
       data={sortedPokemons}
@@ -412,6 +418,7 @@ export default function Index() {
       </View>
     </TouchableOpacity>
 </Modal>
+</LinearGradient>
     </>
   );
 }
@@ -421,7 +428,8 @@ const styles = StyleSheet.create({
   name:{
     fontSize: 25,
     fontWeight: 'bold',
-    textAlign: 'center'
+    textAlign: 'center',
+
   },
 
   type:{
