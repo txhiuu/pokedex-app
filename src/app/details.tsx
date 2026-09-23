@@ -50,11 +50,13 @@ export default function Details() {
 
     const [species, setSpecies] = useState<any>();
 
-    const [locations, setLocations] = useState<any>()
+    const [locations, setLocations] = useState<any>();
+
+    const [evolutionChain, setEvolutionChain] = useState<any[]>([]);
 
     const [activeTab, setActiveTab] = useState('Forms');
 
-    const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location'];
+    const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location', 'Type'];
 
     const formImages = [
       pokemon?.sprites?.front_default, 
@@ -142,6 +144,9 @@ export default function Details() {
     return cleanName.replace(/\b\w/g, (char: string) => char.toUpperCase());
   }) || [];
 
+    
+    
+
 
     useEffect(() => {
       fetchPokemonByName(pokemonName)
@@ -152,6 +157,34 @@ export default function Details() {
         setSelectedImage(pokemon?.sprites?.other?.['official-artwork']?.front_default);
       }
     }, [pokemon]);
+
+    // Hàm đệ quy: Nhận vào 1 node, trả về mảng phẳng các bước tiến hóa
+    function parseEvolutionChain(node: any, result: any[] = []): any[] {
+    // 1. Thêm node hiện tại vào mảng kết quả
+      result.push({
+        name: node.species.name,
+        id: node.species.url.split('/').filter(Boolean).pop(), // Lấy ID từ URL
+      // Lấy điều kiện tiến hóa (nếu có)
+        condition: node.evolution_details?.[0] ? getEvolutionCondition(node.evolution_details[0]) : null,
+      });
+
+    // 2. Duyệt tiếp các nhánh con (đệ quy)
+      if (node.evolves_to && node.evolves_to.length > 0) {
+        node.evolves_to.forEach((child: any) => parseEvolutionChain(child, result));
+      }
+
+      return result;
+    } 
+
+    //Hàm phụ: Chuyển điều kiện tiến hóa thành chuỗi dễ đọc
+    function getEvolutionCondition(details: any): string {
+      if (details.min_level) return `Lv. ${details.min_level}`;
+      if (details.item) return `Dùng ${details.item.name.replace(/-/g, ' ')}`;
+      if (details.trigger?.name === 'trade') return 'Trao đổi';
+      if (details.min_happiness) return `Thân thiết ${details.min_happiness}`;
+      if (details.time_of_day) return `Vào ${details.time_of_day}`;
+      return 'Đặc biệt';
+    }
 
 
     async function fetchPokemonByName(name: string) {
@@ -185,6 +218,14 @@ export default function Details() {
       setSpecies(SpeciesData),
       setLocations(LocationData)
 
+      const evolutionUrl = SpeciesData.evolution_chain.url;
+      const evolutionRes = await fetch(evolutionUrl);
+      const evolutionData = await evolutionRes.json();
+    
+      // Gọi hàm đệ quy để làm phẳng cây
+      const flatChain = parseEvolutionChain(evolutionData.chain);
+      setEvolutionChain(flatChain);
+
       } catch (e) {
         console.log(e)
       }    
@@ -209,7 +250,7 @@ export default function Details() {
             {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
         </Text>
         <Text style={styles.id}>
-            {String(pokemon?.id).padStart(3, "0")}
+            #{String(pokemon?.id).padStart(3, "0")}
         </Text>
         <Image 
             source={{uri: selectedImage}}
@@ -224,7 +265,7 @@ export default function Details() {
       </View >
 
       {/* Tabs Bar */}
-      <View style={{ flexDirection: 'row', gap: 15, marginLeft: 10}}>
+      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 15 }}>
             {tabs.map((tab) => (
         <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
           <Text style={{ 
@@ -236,7 +277,7 @@ export default function Details() {
           </Text>
         </TouchableOpacity>
             ))}
-      </View>
+      </ScrollView>
 
       {/* Content of TB */}
       {activeTab === 'Forms' && (
@@ -276,17 +317,83 @@ export default function Details() {
 
     {/* Tabs Forms */}
     {activeTab === 'Forms' && (
-    <View style={{ marginTop: 20, marginBottom: 30 }}>
-  
+    <ScrollView style={{ marginTop: 10, marginBottom: 30 }}>
+    <View>
+    {/*==================== EVOLUTION CHAIN ====================*/}
+    {evolutionChain.length > 1 && (
+      <View style={{ marginTop: 25 }}>
+        <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: '#1F2937', textAlign: 'center' }}>
+          --- CHUỖI TIẾN HÓA ---
+        </Text>
+
+        {evolutionChain.map((evo, index) => (
+          <View key={index}>
+            {/*Thẻ Pokemon*/}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#F9FAFB',
+              borderRadius: 15,
+              padding: 12,
+              gap: 12,
+            }}>
+              <Image
+                source={{ uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evo.id}.png` }}
+                style={{ width: 70, height: 70 }}
+                resizeMode="contain"
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937', textTransform: 'capitalize' }}>
+                  {evo.name}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#9CA3AF' }}>
+                  #{String(evo.id).padStart(3, '0')}
+                </Text>
+              </View>
+            </View>
+
+            {/*Mũi tên + Điều kiện tiến hóa*/}
+            {index < evolutionChain.length - 1 && evolutionChain[index + 1].condition && (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingLeft: 30,
+                paddingVertical: 8,
+                gap: 8,
+              }}>
+                <Ionicons name="arrow-down" size={20} color="#9CA3AF" />
+                <Text style={{
+                  fontSize: 13,
+                  color: '#5B4B8A',
+                  fontWeight: '600',
+                  backgroundColor: '#EEF2FF',
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 10,
+                }}>
+                  {evolutionChain[index + 1].condition}
+                </Text>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+      
+    )}
+
+    {/* ==================== 3. DESCRIPTION ==================== */}
+    <View style={{ marginTop: 25 }}>
       <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 }}>
         Mega Evolution
-      </Text> 
-  
+      </Text>
+
       <Text style={{ fontSize: 15, lineHeight: 24, color: '#555' }}>
         {description}
       </Text>
     </View>
-    )}
+  </View>
+  </ScrollView>
+)}
 
 
     {/*Tabs Detail */}
@@ -366,7 +473,7 @@ export default function Details() {
           overflow: 'hidden',
           marginLeft: 10 
         }}>
-          {/* Thanh màu chạy bên trong */}
+          {/*Thanh màu chạy bên trong*/}
           <View style={{
             
             width: `${(stat.value / 255) * 100}%`, 

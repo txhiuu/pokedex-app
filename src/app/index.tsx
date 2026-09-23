@@ -145,7 +145,7 @@ export default function Index() {
       end={{ x: 0, y: 1 }}  
       style={{ flex: 1 }}  
     >
-    {/* //use FlatList instead of ScrollView */}
+   {/* use FlatList instead of ScrollView */}
     <FlatList
       data={sortedPokemons}
 
@@ -223,7 +223,7 @@ export default function Index() {
             </View>
             <Text style={styles.name}>{pokemon.name}</Text>
             <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
-            <Text style={styles.id}>{String(pokemon.id).padStart(3, "0")}</Text>
+            <Text style={styles.id}>#{String(pokemon.id).padStart(3, "0")}</Text>
           </View>
         </Link>
       )}
