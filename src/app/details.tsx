@@ -144,7 +144,59 @@ export default function Details() {
     return cleanName.replace(/\b\w/g, (char: string) => char.toUpperCase());
   }) || [];
 
+    const [typeEffectiveness, setTypeEffectiveness] = useState<{
+      weaknesses: { type: string; multiplier: number }[];
+      resistances: { type: string; multiplier: number }[];
+      immunities: string[];
+    }>({ weaknesses: [], resistances: [], immunities: [] });
+
+    const ALL_TYPES = [
+      'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+      'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+      'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy',
+    ];
+
+  function calculateTypeEffectiveness(typeDataArray: any[]) {
+    const multipliers: Record<string, number> = {};
+  
+  // Khởi tạo tất cả hệ = 1 (bình thường)
+    ALL_TYPES.forEach((t) => (multipliers[t] = 1));
+
+  // Nhân hệ số từ mỗi hệ của Pokemon
+    typeDataArray.forEach((typeData) => {
+      const relations = typeData.damage_relations;
     
+    // Hệ này yếu với những hệ nào (x2)
+      relations.double_damage_from.forEach((t: any) => {
+        multipliers[t.name] *= 2;
+      });
+    // Hệ này kháng những hệ nào (x0.5)
+      relations.half_damage_from.forEach((t: any) => {
+        multipliers[t.name] *= 0.5;
+      });
+    // Hệ này miễn nhiễm với những hệ nào (x0)
+      relations.no_damage_from.forEach((t: any) => {
+        multipliers[t.name] *= 0;
+      });
+    });
+
+  // Phân loại
+      const weaknesses: { type: string; multiplier: number }[] = [];
+      const resistances: { type: string; multiplier: number }[] = [];
+      const immunities: string[] = [];
+
+    Object.entries(multipliers).forEach(([type, mult]) => {
+      if (mult === 0) immunities.push(type);
+      if (mult > 1) weaknesses.push({ type, multiplier: mult });
+      else if (mult < 1) resistances.push({ type, multiplier: mult });
+    });
+
+  // Sắp xếp yếu nhất lên đầu
+    weaknesses.sort((a, b) => b.multiplier - a.multiplier);
+    resistances.sort((a, b) => a.multiplier - b.multiplier);
+
+    return { weaknesses, resistances, immunities };
+  }
     
 
 
@@ -225,6 +277,19 @@ export default function Details() {
       // Gọi hàm đệ quy để làm phẳng cây
       const flatChain = parseEvolutionChain(evolutionData.chain);
       setEvolutionChain(flatChain);
+
+      //
+      const typeNames = PokemonData.types.map((t: any) => t.type.name);
+
+      const typeResponses = await Promise.all(
+        typeNames.map((name: string) => fetch(`https://pokeapi.co/api/v2/type/${name}`))
+      );
+
+      const typeData = await Promise.all(typeResponses.map((r: any) => r.json()));
+
+      // Gọi hàm tính toán
+      const effectiveness = calculateTypeEffectiveness(typeData);
+      setTypeEffectiveness(effectiveness);
 
       } catch (e) {
         console.log(e)
@@ -383,7 +448,7 @@ export default function Details() {
 
     {/* ==================== 3. DESCRIPTION ==================== */}
     <View style={{ marginTop: 25 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 }}>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8 , textAlign: 'center'}}>
         Mega Evolution
       </Text>
 
@@ -590,6 +655,109 @@ export default function Details() {
     )}
   </View>
   
+)}
+
+    {/* Tab Type */}
+    {activeTab === 'Type' && (
+    <View style={{ marginTop: 10, gap: 20 }}>
+
+    {/*YẾU*/}
+    {typeEffectiveness.weaknesses.length > 0 && (
+      <View>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#DC2626' }}>
+          Weak against:
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {typeEffectiveness.weaknesses.map((w, i) => (
+            <View
+              key={i}
+              style={{
+                backgroundColor: (colorByType[w.type] || '#CCCCCC') + '30',
+                borderWidth: 1,
+                borderColor: colorByType[w.type] || '#CCCCCC',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Text style={{ color: colorByType[w.type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
+                {w.type}
+              </Text>
+              <Text style={{ color: '#DC2626', fontWeight: 'bold', fontSize: 12 }}>
+                x{w.multiplier}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    )}
+
+    {/*KHÁNG*/}
+    {typeEffectiveness.resistances.length > 0 && (
+      <View>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#16A34A' }}>
+          Resistant against:
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {typeEffectiveness.resistances.map((r, i) => (
+            <View
+              key={i}
+              style={{
+                backgroundColor: (colorByType[r.type] || '#CCCCCC') + '30',
+                borderWidth: 1,
+                borderColor: colorByType[r.type] || '#CCCCCC',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Text style={{ color: colorByType[r.type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
+                {r.type}
+              </Text>
+              <Text style={{ color: '#16A34A', fontWeight: 'bold', fontSize: 12 }}>
+                x{r.multiplier}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    )}
+
+    {/*MIỄN NHIỄM*/}
+    {typeEffectiveness.immunities.length > 0 && (
+      <View>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5B4B8A' }}>
+          Normal damage from:
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {typeEffectiveness.immunities.map((type, i) => (
+            <View
+              key={i}
+              style={{
+                backgroundColor: (colorByType[type] || '#CCCCCC') + '30',
+                borderWidth: 1,
+                borderColor: colorByType[type] || '#CCCCCC',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+              }}
+            >
+              <Text style={{ color: colorByType[type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
+                {type}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    )}
+
+  </View>
 )}
     </ScrollView>
     </LinearGradient>
