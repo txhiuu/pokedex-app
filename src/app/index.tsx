@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import TabBar from '../components/TabBar';
 import { colorByType } from '../utils/colorByType';
 
 interface Pokemon {
@@ -137,6 +138,7 @@ export default function Index() {
       contentContainerStyle={{
         gap: 16, 
         padding: 16,
+        paddingBottom: 120,
       }}
 //
       //  onEndReached={loadMore}
@@ -181,7 +183,7 @@ export default function Index() {
         <Ionicons name="options-outline" size={20} color="white" />
 
       </TouchableOpacity>
-      <Link href="/favourite">Xem yêu thích</Link>
+     
       </View>
     }
 
@@ -401,7 +403,9 @@ export default function Index() {
       </View>
     </TouchableOpacity>
 </Modal>
+
 </LinearGradient>
+<TabBar />
     </>
   );
 }
