@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Dimensions, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
@@ -15,6 +16,8 @@ const Bar_HEIGHT = 70;
 const DoLonBtn = 56;
 
 export default function TabBar() {
+  const insets = useSafeAreaInsets();
+
   const [isOpen, setIsOpen] = useState(false);
 
   //Animation values
@@ -60,8 +63,8 @@ export default function TabBar() {
     Q ${width / 2 - 25} 45, ${width / 2} 45
     Q ${width / 2 + 25} 45, ${width / 2 + 50} 0
     L ${width} 0
-    L ${width} ${Bar_HEIGHT}
-    L 0 ${Bar_HEIGHT}
+    L ${width} ${Bar_HEIGHT + insets.bottom}
+    L 0 ${Bar_HEIGHT + insets.bottom}  
     Z
   `;
 
@@ -72,14 +75,14 @@ export default function TabBar() {
         bottom: 0,
         left: 0,
         right: 0,
-        height: Bar_HEIGHT + 80,
+        height: Bar_HEIGHT + 80 + insets.bottom,
         pointerEvents: 'box-none',
       }}
     >
       {/* Nền SVG cong */}
       <Svg
         width={width}
-        height={Bar_HEIGHT}
+        height={Bar_HEIGHT + insets.bottom}
         style={{ position: 'absolute', bottom: 0 }}
       >
         <Path d={pathD} fill="#FFFFFF" />
@@ -89,13 +92,14 @@ export default function TabBar() {
       <TouchableOpacity
         style={{
           position: 'absolute',
-          bottom: 22,
+          bottom: 22 + insets.bottom,
           left: 45,
           alignItems: 'center',
         }}
         activeOpacity={0.7}
       >
         <Ionicons name="home" size={24} color="#1F2937" />
+        <Text>Home</Text>
       </TouchableOpacity>
 
       {/*Nút Settings*/}
@@ -103,13 +107,14 @@ export default function TabBar() {
         onPress={() => router.push('/settings')}
         style={{
           position: 'absolute',
-          bottom: 22,
+          bottom: 22 + insets.bottom,
           right: 45,
           alignItems: 'center',
         }}
         activeOpacity={0.7}
       >
         <Ionicons name="settings-outline" size={24} color="#9CA3AF" />
+        <Text>Setting</Text>
       </TouchableOpacity>
 
       {/* Icon tym (bay ra) */}
