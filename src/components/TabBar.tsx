@@ -114,7 +114,7 @@ export default function TabBar() {
         activeOpacity={0.7}
       >
         <Ionicons name="settings-outline" size={24} color="#9CA3AF" />
-        <Text>Setting</Text>
+        <Text>Settings</Text>
       </TouchableOpacity>
 
       {/* Icon tym (bay ra) */}
