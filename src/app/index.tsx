@@ -127,8 +127,7 @@ export default function Index() {
         end={{ x: 0, y: 1 }}
         style={{ flex: 1 }}
       >
-        <Text style={styles.header}>Pokédex</Text>
-        <Text style={styles.header_son}>Search for a Pokémon by name or using its National Pokédex number.</Text>
+        
         {/* use FlatList instead of ScrollView */}
         <FlatList
           data={sortedPokemons}
@@ -148,7 +147,9 @@ export default function Index() {
           //      
         
           ListHeaderComponent={
-            
+            <View>
+              <Text style={styles.header}>Pokédex</Text>
+              <Text style={styles.header_son}>Search for a Pokémon by name or using its National Pokédex number.</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
               <View style={{
                 flex: 1,
@@ -189,6 +190,7 @@ export default function Index() {
 
               </TouchableOpacity>
 
+            </View>
             </View>
           }
 
@@ -429,7 +431,7 @@ const styles = StyleSheet.create({
   header_son:{
    paddingLeft: 16,
    fontSize: 15,
-   paddingBottom: 3
+   paddingBottom: 10
   },
 
   name: {
