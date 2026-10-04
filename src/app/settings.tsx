@@ -55,7 +55,7 @@ export default function Settings() {
         {/*HIỆU NĂNG*/}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconCircle, { backgroundColor: '#FEF3C7' }]}>
+            <View style={[styles.sectionIconCircle]}>
               <Ionicons name="flash" size={16} color="#F59E0B" />
             </View>
             <Text style={styles.sectionTitle}>Hiệu năng</Text>
@@ -71,7 +71,7 @@ export default function Settings() {
             <View style={styles.divider} />
             <SettingRow
               icon="sparkles"
-              iconColor="#EC4899"
+              iconColor="#ffee00"
               label="Animation"
               rightElement={<ToggleMock value={true} />}
             />
@@ -83,8 +83,8 @@ export default function Settings() {
         {/*HỆ YÊU THÍCH*/}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.sectionIconCircle, { backgroundColor: '#FCE7F3' }]}>
-              <Ionicons name="color-palette" size={16} color="#EC4899" />
+            <View style={[styles.sectionIconCircle]}>
+              <Ionicons name="color-palette" size={16} color="#e68e0a" />
             </View>
             <Text style={styles.sectionTitle}>Hệ yêu thích</Text>
           </View>
@@ -137,7 +137,7 @@ export default function Settings() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionIconCircle, { backgroundColor: '#DBEAFE' }]}>
-              <Ionicons name="settings" size={16} color="#3B82F6" />
+              <Ionicons name="settings" size={16} color="#b1b3b7" />
             </View>
             <Text style={styles.sectionTitle}>Hệ thống</Text>
           </View>
