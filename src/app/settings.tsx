@@ -1,16 +1,51 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useFavourites } from '../hooks/useFavourites';
+import { useSeenPokemon } from '../hooks/useSeenPokemon';
+import { useSettings } from '../hooks/useSettings';
 import { colorByType } from '../utils/colorByType';
 
-const fake_stats = {
-  favourites: 12,
-  seen: 47,
-};
 
-const FAVOURITE_TYPES = ['fire', 'water', 'grass', 'electric'];
 
 export default function Settings() {
+
+  const { favourites } = useFavourites();
+  const { seenCount } = useSeenPokemon();
+  const {
+    darkMode,
+    animation,
+    toggleDarkMode,
+    toggleAnimation,
+    favouriteTypes,
+    toggleFavouriteType,
+  } = useSettings();
+
+  const handleReset = () => {
+    Alert.alert(
+      '⚠️ Xóa toàn bộ dữ liệu',
+      'Bạn có chắc chắn muốn xóa hết Pokemon yêu thích và cài đặt? Hành động này không thể hoàn tác!',
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.clear();
+            Alert.alert('✅ Đã xóa', 'Toàn bộ dữ liệu đã được xóa. Hãy khởi động lại app!');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleOpenGitHub = () => {
+    Linking.openURL('https://github.com/txhiuu');
+  };
+
+
+
   return (
     <LinearGradient
       colors={['#EEF2FF', '#E0E7FF']}
@@ -26,21 +61,21 @@ export default function Settings() {
         <View style={styles.statsCard}>
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
-            
+
             <View style={styles.statBox}>
               <View style={[styles.statIconCircle, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
-              <Text style={styles.statNumber}>{fake_stats.favourites}</Text>
+              <Text style={styles.statNumber}>{favourites.length}</Text>
               <Text style={styles.statLabel}>Yêu thích</Text>
             </View>
 
-        
+
             <View style={styles.statBox}>
               <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
                 <Ionicons name="eye" size={22} color="#F59E0B" />
               </View>
-              <Text style={styles.statNumber}>{fake_stats.seen}</Text>
+              <Text style={styles.statNumber}>{seenCount}</Text>
               <Text style={styles.statLabel}>Đã xem</Text>
             </View>
           </View>
@@ -66,14 +101,28 @@ export default function Settings() {
               icon="moon"
               iconColor="#6366F1"
               label="Dark Mode"
-              rightElement={<ToggleMock value={false} />}
+              rightElement={
+                <Switch
+                  value={darkMode}
+                  onValueChange={toggleDarkMode}
+                  trackColor={{ false: '#E5E7EB', true: '#8B7BC7' }}
+                  thumbColor={darkMode ? '#5B4B8A' : '#FFFFFF'}
+                />
+              }
             />
             <View style={styles.divider} />
             <SettingRow
               icon="sparkles"
-              iconColor="#ffee00"
+              iconColor="#EC4899"
               label="Animation"
-              rightElement={<ToggleMock value={true} />}
+              rightElement={
+                <Switch
+                  value={animation}
+                  onValueChange={toggleAnimation}
+                  trackColor={{ false: '#E5E7EB', true: '#8B7BC7' }}
+                  thumbColor={animation ? '#5B4B8A' : '#FFFFFF'}
+                />
+              }
             />
           </View>
         </View>
@@ -96,12 +145,13 @@ export default function Settings() {
               gap: 8,
               paddingVertical: 14,
             }}>
-              {FAVOURITE_TYPES.map((type) => {
-                const isSelected = FAVOURITE_TYPES.includes(type);
+              {Object.keys(colorByType).map((type) => {
+                const isSelected = favouriteTypes.includes(type);
                 const typeColor = colorByType[type] || '#CCCCCC';
                 return (
-                  <View
+                  <TouchableOpacity
                     key={type}
+                    onPress={() => toggleFavouriteType(type)}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -109,23 +159,24 @@ export default function Settings() {
                       paddingHorizontal: 12,
                       paddingVertical: 8,
                       borderRadius: 20,
-                      backgroundColor: typeColor + '20',
+                      backgroundColor: isSelected ? typeColor + '40' : '#F3F4F6',
                       borderWidth: 1.5,
-                      borderColor: typeColor,
+                      borderColor: isSelected ? typeColor : '#E5E7EB',
                     }}
                   >
                     <View style={{
-                      width: 8, height: 8, borderRadius: 4, backgroundColor: typeColor,
+                      width: 8, height: 8, borderRadius: 4,
+                      backgroundColor: isSelected ? typeColor : '#9CA3AF',
                     }} />
                     <Text style={{
                       fontSize: 13,
                       fontWeight: '600',
-                      color: typeColor,
+                      color: isSelected ? typeColor : '#6B7280',
                       textTransform: 'capitalize',
                     }}>
                       {type}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -167,19 +218,23 @@ export default function Settings() {
               }
             />
             <View style={styles.divider} />
-            <SettingRow
-              icon="information-circle"
-              iconColor="#8B5CF6"
-              label="Về ứng dụng"
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
-            />
+            <TouchableOpacity onPress={handleOpenGitHub}>
+              <SettingRow
+                icon="information-circle"
+                iconColor="#8B5CF6"
+                label="Về ứng dụng"
+                rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
+              />
+            </TouchableOpacity>
             <View style={styles.divider} />
-            <SettingRow
-              icon="trash"
-              iconColor="#EF4444"
-              label="Xóa dữ liệu"
-              rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
-            />
+            <TouchableOpacity onPress={handleReset}>
+              <SettingRow
+                icon="trash"
+                iconColor="#EF4444"
+                label="Xóa dữ liệu"
+                rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -308,28 +363,3 @@ function SettingRow({ icon, iconColor, label, rightElement }: any) {
   );
 }
 
-function ToggleMock({ value }: { value: boolean }) {
-  return (
-    <View style={{
-      width: 46,
-      height: 26,
-      borderRadius: 13,
-      backgroundColor: value ? '#5B4B8A' : '#E5E7EB',
-      padding: 3,
-      justifyContent: 'center',
-      alignItems: value ? 'flex-end' : 'flex-start',
-    }}>
-      <View style={{
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: 'white',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
-      }} />
-    </View>
-  );
-}
