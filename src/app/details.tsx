@@ -4,6 +4,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useFavourites } from '../hooks/useFavourites';
+import { useSeenPokemon } from '../hooks/useSeenPokemon';
 
 interface Pokemon {
   id: number;
@@ -159,6 +160,8 @@ export default function Details() {
     'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy',
   ];
 
+  const { markAsSeen } = useSeenPokemon();
+
   function calculateTypeEffectiveness(typeDataArray: any[]) {
     const multipliers: Record<string, number> = {};
 
@@ -271,7 +274,8 @@ export default function Details() {
 
       setPokemon(PokemonData),
         setSpecies(SpeciesData),
-        setLocations(LocationData)
+        setLocations(LocationData),
+        markAsSeen(name)
 
       const evolutionUrl = SpeciesData.evolution_chain.url;
       const evolutionRes = await fetch(evolutionUrl);
