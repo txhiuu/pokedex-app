@@ -2,11 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
 import { useSettings } from '../hooks/useSettings';
 import { colorByType } from '../utils/colorByType';
-
 
 
 export default function Settings() {
@@ -14,13 +14,13 @@ export default function Settings() {
   const { favourites } = useFavourites();
   const { seenCount } = useSeenPokemon();
   const {
-    darkMode,
     animation,
-    toggleDarkMode,
     toggleAnimation,
     favouriteTypes,
     toggleFavouriteType,
   } = useSettings();
+
+  const { theme, isDark, toggleTheme } = useTheme();
 
   const handleReset = () => {
     Alert.alert(
@@ -48,7 +48,7 @@ export default function Settings() {
 
   return (
     <LinearGradient
-      colors={['#EEF2FF', '#E0E7FF']}
+      colors={theme.background as any}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
@@ -58,7 +58,7 @@ export default function Settings() {
         showsVerticalScrollIndicator={false}
       >
         {/*STATS*/}
-        <View style={styles.statsCard}>
+        <View style={[styles.statsCard, { backgroundColor: theme.surface }]}>
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
 
@@ -66,8 +66,12 @@ export default function Settings() {
               <View style={[styles.statIconCircle, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
-              <Text style={styles.statNumber}>{favourites.length}</Text>
-              <Text style={styles.statLabel}>Yêu thích</Text>
+              <Text style={[styles.statNumber, { color: theme.textPrimary }]}>
+                {favourites.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                Yêu thích
+              </Text>
             </View>
 
 
@@ -75,14 +79,18 @@ export default function Settings() {
               <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
                 <Ionicons name="eye" size={22} color="#F59E0B" />
               </View>
-              <Text style={styles.statNumber}>{seenCount}</Text>
-              <Text style={styles.statLabel}>Đã xem</Text>
+              <Text style={[styles.statNumber, { color: theme.textPrimary}]}>
+                {seenCount}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary}]}>
+                Đã xem
+              </Text>
             </View>
           </View>
 
-          <View style={styles.trainerRow}>
-            <View style={styles.pokeballMini} />
-            <Text style={styles.trainerName}>Pokédex Trainer</Text>
+          <View style={[styles.trainerRow, { borderTopColor: theme.divider }]}>
+            <View style={[styles.pokeballMini, { borderColor: theme.textPrimary }]} />
+            <Text style={[styles.trainerName, { color: theme.accent }]}>Pokédex Trainer</Text>
           </View>
         </View>
 
@@ -93,25 +101,27 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle]}>
               <Ionicons name="flash" size={16} color="#F59E0B" />
             </View>
-            <Text style={styles.sectionTitle}>Hiệu năng</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hiệu năng</Text>
           </View>
 
-          <View style={styles.sectionBody}>
+          <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
             <SettingRow
+              theme={theme}
               icon="moon"
               iconColor="#6366F1"
               label="Dark Mode"
               rightElement={
                 <Switch
-                  value={darkMode}
-                  onValueChange={toggleDarkMode}
-                  trackColor={{ false: '#E5E7EB', true: '#8B7BC7' }}
-                  thumbColor={darkMode ? '#5B4B8A' : '#FFFFFF'}
+                  value={isDark}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: '#E5E7EB', true: theme.accent }}
+                  thumbColor={isDark ? '#FFFFFF' : '#FFFFFF'}
                 />
               }
             />
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <SettingRow
+              theme={theme}
               icon="sparkles"
               iconColor="#EC4899"
               label="Animation"
@@ -135,10 +145,10 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle]}>
               <Ionicons name="color-palette" size={16} color="#e68e0a" />
             </View>
-            <Text style={styles.sectionTitle}>Hệ yêu thích</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hệ yêu thích</Text>
           </View>
 
-          <View style={styles.sectionBody}>
+          <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
             <View style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
@@ -190,11 +200,12 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle, { backgroundColor: '#DBEAFE' }]}>
               <Ionicons name="settings" size={16} color="#b1b3b7" />
             </View>
-            <Text style={styles.sectionTitle}>Hệ thống</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hệ thống</Text>
           </View>
 
-          <View style={styles.sectionBody}>
+         <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
             <SettingRow
+             theme={theme}
               icon="language"
               iconColor="#3B82F6"
               label="Ngôn ngữ"
@@ -205,8 +216,9 @@ export default function Settings() {
                 </View>
               }
             />
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <SettingRow
+             theme={theme}
               icon="resize"
               iconColor="#10B981"
               label="Đơn vị đo"
@@ -217,18 +229,20 @@ export default function Settings() {
                 </View>
               }
             />
-            <View style={styles.divider} />
+           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <TouchableOpacity onPress={handleOpenGitHub}>
               <SettingRow
+               theme={theme}
                 icon="information-circle"
                 iconColor="#8B5CF6"
                 label="Về ứng dụng"
                 rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
               />
             </TouchableOpacity>
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <TouchableOpacity onPress={handleReset}>
               <SettingRow
+               theme={theme}
                 icon="trash"
                 iconColor="#EF4444"
                 label="Xóa dữ liệu"
@@ -346,7 +360,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function SettingRow({ icon, iconColor, label, rightElement }: any) {
+function SettingRow({ icon, iconColor, label, rightElement, theme }: any) {
   return (
     <View style={{
       flexDirection: 'row',
@@ -355,7 +369,7 @@ function SettingRow({ icon, iconColor, label, rightElement }: any) {
       gap: 12,
     }}>
       <Ionicons name={icon} size={20} color={iconColor} />
-      <Text style={{ flex: 1, fontSize: 15, color: '#1F2937', fontWeight: '500' }}>
+      <Text style={{ flex: 1, fontSize: 15, color: theme.textPrimary, fontWeight: '500' }}>
         {label}
       </Text>
       {rightElement}
