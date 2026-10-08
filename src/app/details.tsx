@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
 
@@ -61,6 +62,8 @@ export default function Details() {
   const { isFav, toggleFavourite } = useFavourites(pokemonName as string);
 
   const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location', 'Type'];
+
+  const { theme, isDark } = useTheme();
 
   const formImages = [
     pokemon?.sprites?.front_default,
@@ -308,7 +311,7 @@ export default function Details() {
   return (
     <>
       <LinearGradient
-        colors={['#EEF2FF', '#E0E7FF']}
+        colors={theme.background as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={{ flex: 1 }}
@@ -317,11 +320,11 @@ export default function Details() {
           gap: 16,
           padding: 16
         }}>
-          <View style={styles.header}>
-            <Text style={styles.title}>
+          <View style={[styles.header, { borderBottomColor: theme.divider }]}>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>
               {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
             </Text>
-            <Text style={styles.id}>
+            <Text style={[styles.id, { color: theme.textSecondary }]}>
               #{String(pokemon?.id).padStart(3, "0")}
             </Text>
 
@@ -379,7 +382,7 @@ export default function Details() {
               <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
                 <Text style={{
                   fontWeight: activeTab === tab ? 'bold' : 'normal',
-                  color: activeTab === tab ? 'black' : '#999',
+                  color: activeTab === tab ? theme.accent : theme.textSecondary,
                   fontSize: 20
                 }}>
                   {tab}
@@ -397,16 +400,18 @@ export default function Details() {
                 const isSelected = formimage === selectedImage;
 
                 return (
-                  <TouchableOpacity key={index} onPress={() => setSelectedImage(formimage)}
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setSelectedImage(formimage)}
                     style={{
                       height: 90,
                       width: 90,
                       borderRadius: 20,
-                      backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + '90',
+                      backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + (isDark ? '40' : '90'),
                       justifyContent: 'center',
                       alignItems: 'center',
                       borderWidth: isSelected ? 2 : 0,
-                      borderColor: isSelected ? 'white' : 'transparent',
+                      borderColor: isSelected ? theme.accent : 'transparent',
                     }}
                   >
                     <Image source={{ uri: formimage }}
@@ -441,7 +446,7 @@ export default function Details() {
                         <View style={{
                           flexDirection: 'row',
                           alignItems: 'center',
-                          backgroundColor: '#F9FAFB',
+                          backgroundColor: theme.cardBg,
                           borderRadius: 15,
                           padding: 12,
                           gap: 12,
@@ -452,10 +457,10 @@ export default function Details() {
                             resizeMode="contain"
                           />
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: '#1F2937', textTransform: 'capitalize' }}>
+                            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.textPrimary, textTransform: 'capitalize' }}>
                               {evo.name}
                             </Text>
-                            <Text style={{ fontSize: 13, color: '#9CA3AF' }}>
+                            <Text style={{ fontSize: 13, color: theme.textSecondary }}>
                               #{String(evo.id).padStart(3, '0')}
                             </Text>
                           </View>
@@ -473,9 +478,9 @@ export default function Details() {
                             <Ionicons name="arrow-down" size={20} color="#9CA3AF" />
                             <Text style={{
                               fontSize: 13,
-                              color: '#5B4B8A',
+                              color: theme.accent,
                               fontWeight: '600',
-                              backgroundColor: '#EEF2FF',
+                              backgroundColor: theme.accentLight,
                               paddingHorizontal: 10,
                               paddingVertical: 4,
                               borderRadius: 10,
@@ -492,11 +497,11 @@ export default function Details() {
 
                 {/* ==================== 3. DESCRIPTION ==================== */}
                 <View style={{ marginTop: 25 }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 8, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 8, textAlign: 'center' }}>
                     Mega Evolution
                   </Text>
 
-                  <Text style={{ fontSize: 15, lineHeight: 24, color: '#555' }}>
+                  <Text style={{ fontSize: 15, lineHeight: 24, color: theme.textMuted }}>
                     {description}
                   </Text>
                 </View>
@@ -512,11 +517,11 @@ export default function Details() {
               {/*Height */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-                <Text style={{ color: '#999', fontSize: 15 }}>
+                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
                   Height
                 </Text>
 
-                <Text style={{ fontWeight: '600', fontSize: 15 }}>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
                   {(pokemon?.height / 10).toFixed(1)} m
                 </Text>
               </View>
@@ -524,11 +529,11 @@ export default function Details() {
               {/*Weight */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-                <Text style={{ color: '#999', fontSize: 15 }}>
+                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
                   Weight
                 </Text>
 
-                <Text style={{ fontWeight: '600', fontSize: 15 }}>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
                   {(pokemon?.weight / 10).toFixed(1)} kg
                 </Text>
               </View>
@@ -536,11 +541,11 @@ export default function Details() {
               {/*Base Experience */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-                <Text style={{ color: '#999', fontSize: 15 }}>
+                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
                   Base Experience
                 </Text>
 
-                <Text style={{ fontWeight: '600', fontSize: 15 }}>
+                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
                   {pokemon?.base_experience}
                 </Text>
               </View>
@@ -548,11 +553,11 @@ export default function Details() {
               {/* Abilities */}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-                <Text style={{ color: '#999', fontSize: 15 }}>
+                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
                   Abilities
                 </Text>
 
-                <Text style={{ fontWeight: '600', fontSize: 15, textAlign: 'right', flex: 1 }}>
+                <Text style={{ fontWeight: '600', fontSize: 15, textAlign: 'right', flex: 1, color: theme.textPrimary }}>
                   {pokemon?.abilities?.map((item: any) => item.ability.name).join(', ')}
                 </Text>
               </View>
@@ -566,18 +571,18 @@ export default function Details() {
               {statsData?.map((stat: any, index: any) => (
                 <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
 
-                  <Text style={{ width: 70, color: '#999', fontSize: 14 }}>
+                  <Text style={{ width: 70, color: theme.textSecondary, fontSize: 14 }}>
                     {stat.name}
                   </Text>
 
-                  <Text style={{ width: 40, fontWeight: 'bold', fontSize: 14 }}>
+                  <Text style={{ width: 40, fontWeight: 'bold', fontSize: 14, color: theme.textPrimary }}>
                     {stat.value}
                   </Text>
 
                   <View style={{
                     flex: 1,
                     height: 6,
-                    backgroundColor: '#E5E7EB',
+                    backgroundColor: isDark ? '#2D2A4A' : '#E5E7EB',
                     borderRadius: 3,
                     overflow: 'hidden',
                     marginLeft: 10
@@ -611,15 +616,15 @@ export default function Details() {
                 <View
                   key={index}
                   style={{
-                    backgroundColor: '#F3F4F6',
+                    backgroundColor: theme.cardBg,
                     paddingHorizontal: 12,
                     paddingVertical: 6,
                     borderRadius: 20,
                     borderWidth: 1,
-                    borderColor: '#E5E7EB',
+                    borderColor: theme.border,
                   }}
                 >
-                  <Text style={{ color: '#4B5563', fontSize: 13 }}>
+                  <Text style={{ color: theme.textPrimary, fontSize: 13 }}>
                     {moveName}
                   </Text>
                 </View>
@@ -642,28 +647,28 @@ export default function Details() {
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        backgroundColor: '#F3F4F6',
+                        backgroundColor: theme.cardBg,
                         padding: 12,
                         borderRadius: 10,
                       }}
                     >
 
-                      <Ionicons name="location-outline" size={18} color="#4B5563" style={{ marginRight: 8 }} />
+                      <Ionicons name="location-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
 
 
-                      <Text style={{ color: '#4B5563', fontSize: 14, flex: 1 }}>
+                      <Text style={{ color: theme.textPrimary, fontSize: 14, flex: 1 }}>
                         {loc.name}
                       </Text>
 
                       {/* Tỉ lệ gặp*/}
                       <View style={{
-                        backgroundColor: '#DCFCE7',
+                        backgroundColor: theme.cardBg,
                         paddingHorizontal: 8,
                         paddingVertical: 4,
                         borderRadius: 12,
                         marginLeft: 8,
                       }}>
-                        <Text style={{ color: '#16A34A', fontSize: 12, fontWeight: '600' }}>
+                        <Text style={{ color: '#ef1b1b', fontSize: 12, fontWeight: '600' }}>
                           {loc.chance}%
                         </Text>
                       </View>
@@ -674,7 +679,7 @@ export default function Details() {
               {/* heldItems */}
               {heldItemsData.length > 0 && (
                 <View style={{ marginTop: 20 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#1a1a1a' }}>
+                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#9a952f' }}>
 
                     🎁 Vật phẩm có thể cầm
 
@@ -682,13 +687,13 @@ export default function Details() {
                   {heldItemsData.map((itemName: any, index: any) => (
                     <View key={index} style={{
 
-                      backgroundColor: '#fff1d4',
+                      backgroundColor: isDark ? '#3D2E14' : '#fff1d4',
                       padding: 10,
                       borderRadius: 10,
                       marginBottom: 8
 
                     }}>
-                      <Text style={{ color: '#B45309', fontWeight: '600' }}>
+                      <Text style={{ color: isDark ? '#FBBF24' : '#B45309', fontWeight: '600' }}>
 
                         {itemName}
 
@@ -716,7 +721,7 @@ export default function Details() {
                       <View
                         key={i}
                         style={{
-                          backgroundColor: (colorByType[w.type] || '#CCCCCC') + '30',
+                          backgroundColor: (colorByType[w.type] || '#CCCCCC') + (isDark ? '40' : '30'),
                           borderWidth: 1,
                           borderColor: colorByType[w.type] || '#CCCCCC',
                           paddingHorizontal: 12,
@@ -730,7 +735,7 @@ export default function Details() {
                         <Text style={{ color: colorByType[w.type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
                           {w.type}
                         </Text>
-                        <Text style={{ color: '#DC2626', fontWeight: 'bold', fontSize: 12 }}>
+                        <Text style={{ color: theme.textPrimary, fontWeight: 'bold', fontSize: 12 }}>
                           x{w.multiplier}
                         </Text>
                       </View>
