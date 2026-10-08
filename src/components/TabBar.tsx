@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const Bar_HEIGHT = 70;
@@ -68,6 +69,8 @@ export default function TabBar() {
     Z
   `;
 
+  const { theme, isDark } = useTheme();
+
   return (
     <View
       style={{
@@ -85,7 +88,7 @@ export default function TabBar() {
         height={Bar_HEIGHT + insets.bottom}
         style={{ position: 'absolute', bottom: 0 }}
       >
-        <Path d={pathD} fill="#FFFFFF" />
+        <Path d={pathD} fill={theme.surface} />
       </Svg>
 
       {/*Nút Home*/}
@@ -98,8 +101,8 @@ export default function TabBar() {
         }}
         activeOpacity={0.7}
       >
-        <Ionicons name="home" size={24} color="#1F2937" />
-        <Text>Home</Text>
+        <Ionicons name="home" size={24} color={theme.textPrimary} />
+        <Text style={{color: theme.textSecondary}}>Home</Text>
       </TouchableOpacity>
 
       {/*Nút Settings*/}
@@ -113,8 +116,8 @@ export default function TabBar() {
         }}
         activeOpacity={0.7}
       >
-        <Ionicons name="settings-outline" size={24} color="#9CA3AF" />
-        <Text>Settings</Text>
+        <Ionicons name="settings-outline" size={24} color={theme.textSecondary} />
+        <Text style={{color: theme.textSecondary}}>Settings</Text>
       </TouchableOpacity>
 
       {/* Icon tym (bay ra) */}
@@ -174,7 +177,7 @@ export default function TabBar() {
           width: DoLonBtn,
           height: DoLonBtn,
           borderRadius: DoLonBtn / 2,
-          backgroundColor: '#8B7BC7',
+          backgroundColor: isDark ? '#A78BFA' : '#8B7BC7',
           justifyContent: 'center',
           alignItems: 'center',
           shadowColor: '#5B4B8A',
