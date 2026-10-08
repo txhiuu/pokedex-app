@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { colorByType } from '../utils/colorByType';
 
@@ -10,6 +11,7 @@ export default function Favourite() {
     const { favourites } = useFavourites();
     const [pokemonDetails, setPokemonDetails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { theme, isDark } = useTheme();
 
     // Fetch chi tiết từng Pokemon yêu thích
     const loadDetails = useCallback(async () => {
@@ -48,12 +50,12 @@ export default function Favourite() {
 
     if (pokemonDetails.length === 0) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30, backgroundColor: '#EEF2FF' }}>
-                <Ionicons name="heart-outline" size={80} color="#C7D2FE" />
-                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1F2937', marginTop: 15, textAlign: 'center' }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30, backgroundColor: theme.background[0] }}>
+                <Ionicons name="heart-outline" size={80} color={isDark ? '#4A4468' : '#C7D2FE'} />
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginTop: 15, textAlign: 'center' }}>
                     Chưa có Pokemon yêu thích
                 </Text>
-                <Text style={{ fontSize: 14, color: '#9CA3AF', textAlign: 'center', marginTop: 8 }}>
+                <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center', marginTop: 8 }}>
                     Hãy bấm vào trái tim ở trang chi tiết để thêm vào đây nhé!
                 </Text>
             </View>
@@ -62,7 +64,7 @@ export default function Favourite() {
 
     return (
         <LinearGradient
-            colors={['#EEF2FF', '#E0E7FF']}
+            colors={theme.background as any}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
             style={{ flex: 1 }}
@@ -78,19 +80,25 @@ export default function Favourite() {
                         href={{ pathname: "/details", params: { name: pokemon.name } }}
                         style={{
                             // @ts-ignore
-                            backgroundColor: colorByType[pokemon.types[0].type.name] + 40,
+                            backgroundColor: isDark
+                                ? colorByType[pokemon.types[0].type.name] + '30' 
+                                : colorByType[pokemon.types[0].type.name] + '40',
                             borderRadius: 20,
                             padding: 10,
                             width: 170,
                         }}
                     >
-                        <Image
-                            source={{ uri: pokemon.image }}
-                            style={{ width: 150, height: 150 }}
-                        />
-                        <Text style={styles.name}>{pokemon.name}</Text>
-                        <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
-                        <Text style={styles.id}>#{String(pokemon.id).padStart(3, "0")}</Text>
+                        <Image source={{ uri: pokemon.image }} style={{ width: 150, height: 150 }} />
+
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.textPrimary, textTransform: 'capitalize', marginTop: 5 }}>
+                            {pokemon.name}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: theme.textSecondary, textTransform: 'capitalize' }}>
+                            {pokemon.types[0].type.name}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: theme.textMuted, fontWeight: '600', marginTop: 4 }}>
+                            #{String(pokemon.id).padStart(3, "0")}
+                        </Text>
                     </Link>
                 )}
             />
