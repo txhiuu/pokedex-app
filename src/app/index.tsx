@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import TabBar from '../components/TabBar';
+import { useTheme } from '../context/ThemeContext';
 import { colorByType } from '../utils/colorByType';
 
 interface Pokemon {
@@ -77,6 +78,8 @@ export default function Index() {
     return sortOrder === 'up' ? comparison : -comparison;
   });
 
+  const { theme, isDark } = useTheme();
+
   useEffect(() => {
     // fetch pokemons
     fetchPokemons();
@@ -122,12 +125,12 @@ export default function Index() {
   return (
     <>
       <LinearGradient
-        colors={['#FEF2F2', '#CFFAFE']}
+        colors={theme.background as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={{ flex: 1 }}
       >
-        
+
         {/* use FlatList instead of ScrollView */}
         <FlatList
           data={sortedPokemons}
@@ -145,52 +148,57 @@ export default function Index() {
           //  onEndReached={loadMore}
           //  onEndReachedThreshold={0.5}
           //      
-        
+
           ListHeaderComponent={
             <View>
-              <Text style={styles.header}>Pokédex</Text>
-              <Text style={styles.header_son}>Search for a Pokémon by name or using its National Pokédex number.</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-              <View style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#F3F4F6',
-                borderRadius: 20,
-                paddingHorizontal: 12,
-                borderWidth: 1,
-                borderColor: "black"
-              }}>
-                
 
-                <Ionicons name="search" size={20} color="#9CA3AF" />
-
-                <TextInput
-                  placeholder="Name or number"
-                  placeholderTextColor="#9CA3AF"
-                  style={{ flex: 1, marginLeft: 8, color: '#1F2937', fontSize: 16 }}
-                  value={searchText}
-                  onChangeText={setSearchText}
-                  onSubmitEditing={handleSearch}
-                />
-              </View>
-
-              <TouchableOpacity
-                onPress={() => setShowSortMenu(!showSortMenu)}
-                style={{
-                  backgroundColor: '#5B4B8A',
-                  padding: 12,
-                  borderRadius: 15,
-                  justifyContent: 'center',
+              <Text style={[styles.header, { color: theme.textPrimary }]}>
+                Pokédex
+              </Text>
+              <Text style={[styles.header_son, { color: theme.textSecondary }]}>
+                Search for a Pokémon by name or using its National Pokédex number.
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                <View style={{
+                  flex: 1,
+                  flexDirection: 'row',
                   alignItems: 'center',
-                }}
-              >
+                  backgroundColor: theme.searchBg,
+                  borderRadius: 20,
+                  paddingHorizontal: 12,
+                  borderWidth: 1,
+                  borderColor: theme.border
+                }}>
 
-                <Ionicons name="options-outline" size={20} color="white" />
 
-              </TouchableOpacity>
+                  <Ionicons name="search" size={20} color={theme.textSecondary} />
 
-            </View>
+                  <TextInput
+                    placeholder="Name or number"
+                    placeholderTextColor={theme.textSecondary}
+                    style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16 }}
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    onSubmitEditing={handleSearch}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowSortMenu(!showSortMenu)}
+                  style={{
+                    backgroundColor: theme.accent,
+                    padding: 12,
+                    borderRadius: 15,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+
+                  <Ionicons name="options-outline" size={20} color="white" />
+
+                </TouchableOpacity>
+
+              </View>
             </View>
           }
 
@@ -198,7 +206,9 @@ export default function Index() {
             <Link key={pokemon.name} href={{ pathname: "/details", params: { name: pokemon.name } }}
               style={{
                 // @ts-ignore
-                backgroundColor: colorByType[pokemon.types[0].type.name] + 40,
+                backgroundColor: isDark
+                  ? colorByType[pokemon.types[0].type.name] + '30'
+                  : colorByType[pokemon.types[0].type.name] + '40',
                 borderRadius: 20,
                 padding: 10,
                 width: 170
@@ -213,9 +223,9 @@ export default function Index() {
                     style={{ width: 150, height: 150 }}
                   />
                 </View>
-                <Text style={styles.name}>{pokemon.name}</Text>
-                <Text style={styles.type}>{pokemon.types[0].type.name}</Text>
-                <Text style={styles.id}>#{String(pokemon.id).padStart(3, "0")}</Text>
+                <Text style={[styles.name, { color: theme.textPrimary }]}>{pokemon.name}</Text>
+                <Text style={[styles.type, { color: theme.textSecondary }]}>{pokemon.types[0].type.name}</Text>
+                <Text style={[styles.id, { color: theme.textMuted }]}>#{String(pokemon.id).padStart(3, "0")}</Text>
               </View>
             </Link>
           )}
@@ -244,7 +254,7 @@ export default function Index() {
               style={{
                 marginTop: 130,
                 marginRight: 16,
-                backgroundColor: 'white',
+                backgroundColor: theme.surface,
                 borderRadius: 16,
                 paddingVertical: 8,
                 paddingHorizontal: 4,
@@ -260,7 +270,7 @@ export default function Index() {
               <Text
                 style={{
                   fontSize: 11,
-                  color: '#9CA3AF',
+                  color: theme.textSecondary,
                   fontWeight: '700',
                   paddingHorizontal: 12,
                   paddingTop: 8,
@@ -288,15 +298,14 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor:
-                    sortBy === 'name' && sortOrder === 'up' ? '#F3F4F6' : 'transparent',
+                  backgroundColor: (sortBy === 'name' && sortOrder === 'up')
+                    ? theme.accentLight
+                    : 'transparent',
                 }}
               >
-                <Ionicons name="arrow-up" size={16} color="#5B4B8A" />
-                <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
-
+                <Ionicons name="arrow-up" size={16} color={theme.accent} />
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
                   Tên (A → Z)
-
                 </Text>
               </TouchableOpacity>
 
@@ -315,12 +324,13 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor:
-                    sortBy === 'name' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
+                    ? theme.accentLight
+                    : 'transparent',
                 }}
               >
-                <Ionicons name="arrow-down" size={16} color="#5B4B8A" />
-                <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+                <Ionicons name="arrow-down" size={16} color={theme.accent} />
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
                   Tên (Z → A)
 
@@ -328,20 +338,13 @@ export default function Index() {
               </TouchableOpacity>
 
               {/* Đường kẻ ngăn cách */}
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: '#F3F4F6',
-                  marginVertical: 6,
-                  marginHorizontal: 12,
-                }}
-              />
+              <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 6, marginHorizontal: 12 }} />
 
               {/* ===== NHÓM 2: SẮP XẾP THEO ID ===== */}
               <Text
                 style={{
                   fontSize: 11,
-                  color: '#9CA3AF',
+                  color: theme.textSecondary,
                   fontWeight: '700',
                   paddingHorizontal: 12,
                   paddingTop: 8,
@@ -369,12 +372,13 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor:
-                    sortBy === 'id' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
+                    ? theme.accentLight
+                    : 'transparent',
                 }}
               >
-                <Ionicons name="arrow-up" size={16} color="#5B4B8A" />
-                <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+                <Ionicons name="arrow-up" size={16} color={theme.accent} />
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
                   ID (Tăng dần)
 
@@ -396,12 +400,13 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor:
-                    sortBy === 'id' && sortOrder === 'down' ? '#F3F4F6' : 'transparent',
+                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
+                    ? theme.accentLight
+                    : 'transparent',
                 }}
               >
-                <Ionicons name="arrow-down" size={16} color="#5B4B8A" />
-                <Text style={{ fontSize: 14, color: '#1F2937', flex: 1 }}>
+                <Ionicons name="arrow-down" size={16} color={theme.accent} />
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
                   ID (Giảm dần)
 
@@ -419,19 +424,19 @@ export default function Index() {
 
 
 const styles = StyleSheet.create({
-  
-  header:{
-   paddingLeft: 16,
-   fontWeight: 'bold',
-   fontSize: 40,
-   color: '#5B4B8A',
-   paddingBottom: 5
+
+  header: {
+    paddingLeft: 16,
+    fontWeight: 'bold',
+    fontSize: 40,
+    color: '#5B4B8A',
+    paddingBottom: 5
   },
 
-  header_son:{
-   paddingLeft: 16,
-   fontSize: 15,
-   paddingBottom: 10
+  header_son: {
+    paddingLeft: 16,
+    fontSize: 15,
+    paddingBottom: 10
   },
 
   name: {
