@@ -4,7 +4,6 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 const KEY_DARK = '@pokedex_dark_mode';
 
-// ============ 2 BỘ MÀU ============
 export const themes = {
   light: {
     background: ['#EEF2FF', '#E0E7FF'],
@@ -37,7 +36,7 @@ export const themes = {
 };
 
 interface Theme {
-  background: string[];  // Mảng string thường, không readonly
+  background: string[]; 
   surface: string;
   textPrimary: string;
   textSecondary: string;
@@ -69,7 +68,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Đọc theme đã lưu khi mở app
   useEffect(() => {
     async function load() {
       try {
@@ -97,8 +95,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     </ThemeContext.Provider>
   );
 }
-
-// Hook để dùng ở bất kỳ component nào
+//hook
 export function useTheme() {
   return useContext(ThemeContext);
 }
