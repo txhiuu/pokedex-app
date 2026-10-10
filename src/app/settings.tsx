@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Linking, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
@@ -21,19 +23,21 @@ export default function Settings() {
   } = useSettings();
 
   const { theme, isDark, toggleTheme } = useTheme();
+  const { language, t, setLanguage } = useLanguage();
+  const [showLangMenu, setShowLangMenu] = useState(false);
 
   const handleReset = () => {
     Alert.alert(
-      '⚠️ Xóa toàn bộ dữ liệu',
-      'Bạn có chắc chắn muốn xóa hết Pokemon yêu thích và cài đặt? Hành động này không thể hoàn tác!',
+      t('resetTitle'),
+      t('resetMessage'),
       [
-        { text: 'Hủy', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Xóa',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             await AsyncStorage.clear();
-            Alert.alert('✅ Đã xóa', 'Toàn bộ dữ liệu đã được xóa. Hãy khởi động lại app!');
+            Alert.alert(t('deleted'), t('deletedMessage'));
           },
         },
       ]
@@ -70,7 +74,7 @@ export default function Settings() {
                 {favourites.length}
               </Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
-                Yêu thích
+                {t('favouritesCount')}
               </Text>
             </View>
 
@@ -79,18 +83,18 @@ export default function Settings() {
               <View style={[styles.statIconCircle, { backgroundColor: '#FEF3C7' }]}>
                 <Ionicons name="eye" size={22} color="#F59E0B" />
               </View>
-              <Text style={[styles.statNumber, { color: theme.textPrimary}]}>
+              <Text style={[styles.statNumber, { color: theme.textPrimary }]}>
                 {seenCount}
               </Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary}]}>
-                Đã xem
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                {t('seenCount')}
               </Text>
             </View>
           </View>
 
           <View style={[styles.trainerRow, { borderTopColor: theme.divider }]}>
             <View style={[styles.pokeballMini, { borderColor: theme.textPrimary }]} />
-            <Text style={[styles.trainerName, { color: theme.accent }]}>Pokédex Trainer</Text>
+            <Text style={[styles.trainerName, { color: theme.accent }]}>{t('trainerName')}</Text>
           </View>
         </View>
 
@@ -101,7 +105,7 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle]}>
               <Ionicons name="flash" size={16} color="#F59E0B" />
             </View>
-            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hiệu năng</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>{t('performance')}</Text>
           </View>
 
           <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
@@ -109,7 +113,7 @@ export default function Settings() {
               theme={theme}
               icon="moon"
               iconColor="#6366F1"
-              label="Dark Mode"
+              label={t('darkMode')}
               rightElement={
                 <Switch
                   value={isDark}
@@ -124,7 +128,7 @@ export default function Settings() {
               theme={theme}
               icon="sparkles"
               iconColor="#EC4899"
-              label="Animation"
+              label={t('animation')}
               rightElement={
                 <Switch
                   value={animation}
@@ -145,7 +149,7 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle]}>
               <Ionicons name="color-palette" size={16} color="#e68e0a" />
             </View>
-            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hệ yêu thích</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>{t('favouriteTypes')}</Text>
           </View>
 
           <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
@@ -200,28 +204,32 @@ export default function Settings() {
             <View style={[styles.sectionIconCircle, { backgroundColor: '#DBEAFE' }]}>
               <Ionicons name="settings" size={16} color="#b1b3b7" />
             </View>
-            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Hệ thống</Text>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>{t('system')}</Text>
           </View>
 
-         <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
-            <SettingRow
-             theme={theme}
-              icon="language"
-              iconColor="#3B82F6"
-              label="Ngôn ngữ"
-              rightElement={
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Text style={{ color: '#9CA3AF', fontSize: 14 }}>Việt</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
-                </View>
-              }
-            />
+          <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
+            <TouchableOpacity onPress={() => setShowLangMenu(true)}>
+              <SettingRow
+                theme={theme}
+                icon="language"
+                iconColor="#3B82F6"
+                label={t('language')}
+                rightElement={
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ color: theme.textSecondary, fontSize: 14 }}>
+                      {language === 'vi' ? 'Tiếng Việt' : 'English'}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
+                  </View>
+                }
+              />
+            </TouchableOpacity>
             <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <SettingRow
-             theme={theme}
+              theme={theme}
               icon="resize"
               iconColor="#10B981"
-              label="Đơn vị đo"
+              label={t('unit')}
               rightElement={
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   <Text style={{ color: '#9CA3AF', fontSize: 14 }}>Mét</Text>
@@ -229,23 +237,23 @@ export default function Settings() {
                 </View>
               }
             />
-           <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+            <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <TouchableOpacity onPress={handleOpenGitHub}>
               <SettingRow
-               theme={theme}
+                theme={theme}
                 icon="information-circle"
                 iconColor="#8B5CF6"
-                label="Về ứng dụng"
+                label={t('about')}
                 rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
               />
             </TouchableOpacity>
             <View style={[styles.divider, { backgroundColor: theme.divider }]} />
             <TouchableOpacity onPress={handleReset}>
               <SettingRow
-               theme={theme}
+                theme={theme}
                 icon="trash"
                 iconColor="#EF4444"
-                label="Xóa dữ liệu"
+                label={t('resetData')}
                 rightElement={<Ionicons name="chevron-forward" size={16} color="#D1D5DB" />}
               />
             </TouchableOpacity>
@@ -255,10 +263,67 @@ export default function Settings() {
         {/*credit cuối*/}
         <View style={{ alignItems: 'center', paddingVertical: 20, gap: 4 }}>
           <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-            Made with ❤️ by <Text style={{ color: '#5B4B8A', fontWeight: '600' }}>Spider-Hiếu</Text>
+            {t('credit')} <Text style={{ color: '#5B4B8A', fontWeight: '600' }}>Spider-Hiếu</Text>
           </Text>
-          <Text style={{ fontSize: 11, color: '#D1D5DB' }}>Version 1.0.0</Text>
+          <Text style={{ fontSize: 11, color: '#D1D5DB' }}>{t('version')} 1.0.0</Text>
         </View>
+
+        <Modal
+          visible={showLangMenu}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowLangMenu(false)}
+        >
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
+            activeOpacity={1}
+            onPress={() => setShowLangMenu(false)}
+          >
+            <View style={{
+              backgroundColor: theme.surface,
+              borderRadius: 20,
+              padding: 20,
+              width: 280,
+              gap: 10,
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 10, textAlign: 'center' }}>
+                {t('selectLanguage')}
+              </Text>
+
+              {/* Tiếng Việt */}
+              <TouchableOpacity
+                onPress={() => { setLanguage('vi'); setShowLangMenu(false); }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: 14,
+                  borderRadius: 12,
+                  backgroundColor: language === 'vi' ? theme.accentLight : 'transparent',
+                }}
+              >
+                <Text style={{ fontSize: 16, color: theme.textPrimary, fontWeight: '600' }}>🇻🇳 Tiếng Việt</Text>
+                {language === 'vi' && <Ionicons name="checkmark-circle" size={22} color={theme.accent} />}
+              </TouchableOpacity>
+
+              {/* English */}
+              <TouchableOpacity
+                onPress={() => { setLanguage('en'); setShowLangMenu(false); }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: 14,
+                  borderRadius: 12,
+                  backgroundColor: language === 'en' ? theme.accentLight : 'transparent',
+                }}
+              >
+                <Text style={{ fontSize: 16, color: theme.textPrimary, fontWeight: '600' }}>🇬🇧 English</Text>
+                {language === 'en' && <Ionicons name="checkmark-circle" size={22} color={theme.accent} />}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </ScrollView>
     </LinearGradient>
   );
@@ -376,4 +441,3 @@ function SettingRow({ icon, iconColor, label, rightElement, theme }: any) {
     </View>
   );
 }
-
