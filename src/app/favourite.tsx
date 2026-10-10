@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { colorByType } from '../utils/colorByType';
@@ -12,8 +13,9 @@ export default function Favourite() {
     const [pokemonDetails, setPokemonDetails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { theme, isDark } = useTheme();
+    const { t } = useLanguage();
 
-    // Fetch chi tiết từng Pokemon yêu thích
+    //Fetch Pokemon yêu thích
     const loadDetails = useCallback(async () => {
         if (favourites.length === 0) {
             setPokemonDetails([]);
@@ -41,7 +43,6 @@ export default function Favourite() {
         }
     }, [favourites]);
 
-    // Tự động reload mỗi khi vào trang (quan trọng!)
     useFocusEffect(
         useCallback(() => {
             loadDetails();
@@ -53,10 +54,10 @@ export default function Favourite() {
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30, backgroundColor: theme.background[0] }}>
                 <Ionicons name="heart-outline" size={80} color={isDark ? '#4A4468' : '#C7D2FE'} />
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginTop: 15, textAlign: 'center' }}>
-                    Chưa có Pokemon yêu thích
+                    {t('noFavourite')}
                 </Text>
                 <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center', marginTop: 8 }}>
-                    Hãy bấm vào trái tim ở trang chi tiết để thêm vào đây nhé!
+                    {t('noFavouriteHint')}
                 </Text>
             </View>
         );

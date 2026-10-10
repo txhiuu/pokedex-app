@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import TabBar from '../components/TabBar';
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorByType } from '../utils/colorByType';
 
@@ -27,8 +28,6 @@ export default function Index() {
 
   const [searchText, setSearchText] = useState('');
 
-  // console.log(JSON.stringify(pokemons[0], null, 2));
-
   const handleSearch = () => {
     if (!searchText.trim()) return;
 
@@ -37,33 +36,11 @@ export default function Index() {
     setSearchText('');
   };
 
-  //api_load
-  // const [offset, setOffset] = useState(0);
-
-  // const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  //   const loadMore = () => {
-
-  //     if (isLoadingMore) setIsLoadingMore(true);
-
-  //    // const LIMIT = 150;
-  //   //gọi từng 20 poke/1 lần
-  //   const newOffset = offset + 20;
-  //     //const newOffset = offset + LIMIT;
-
-
-  //     setOffset(newOffset);
-
-  //   //gọi API với offset mới
-  //     fetchPokemons(newOffset, true);
-  //   };
-  // //
-
   const [sortBy, setSortBy] = useState<'name' | 'id'>('id');
 
   const [sortOrder, setSortOrder] = useState<'up' | 'down'>('down');
 
-  const [showSortMenu, setShowSortMenu] = useState(false); // Ẩn menu lúc đầu
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const sortedPokemons = [...pokemons].sort((a, b) => {
 
@@ -79,21 +56,18 @@ export default function Index() {
   });
 
   const { theme, isDark } = useTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
-    // fetch pokemons
     fetchPokemons();
   }, [])
 
   async function fetchPokemons() {
-    // if (isLoadingMore) setIsLoadingMore(true);
     try {
-      // Gọi API lấy danh sách 20 Pokemon đầu tiên
       const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=100")
 
       const data = await response.json();
 
-      // Gọi song song API lấy thông tin chi tiết từng Pokemon
       const detailedPokemons = await Promise.all(
         data.results.map(async (pokemon: any) => {
           const res = await fetch(pokemon.url);
@@ -101,23 +75,13 @@ export default function Index() {
           return {
             id: details.id,
             name: pokemon.name,
-            image: details.sprites.front_default, // main sprite
-            //   imageBack: details.sprites.back_default,
+            image: details.sprites.front_default,
             types: details.types
           };
         })
       );
 
       setPokemons(detailedPokemons);
-
-      //Nếu là "tải thêm" thì NỐI vào mảng cũ, nếu là "lần đầu" thì THAY THẾ
-      // if (isLoadingMore) {
-      //   setPokemons((prev) => [...prev, ...detailedPokemons]);
-      // } 
-      // else {
-      //   setPokemons(detailedPokemons);
-      // }
-      //
     } catch (e) {
       console.log(e)
     }
@@ -131,7 +95,6 @@ export default function Index() {
         style={{ flex: 1 }}
       >
 
-        {/* use FlatList instead of ScrollView */}
         <FlatList
           data={sortedPokemons}
 
@@ -144,19 +107,15 @@ export default function Index() {
             padding: 16,
             paddingBottom: 120,
           }}
-          //
-          //  onEndReached={loadMore}
-          //  onEndReachedThreshold={0.5}
-          //      
 
           ListHeaderComponent={
             <View>
 
               <Text style={[styles.header, { color: theme.textPrimary }]}>
-                Pokédex
+                {t('appName')}
               </Text>
               <Text style={[styles.header_son, { color: theme.textSecondary }]}>
-                Search for a Pokémon by name or using its National Pokédex number.
+                {t('homeSubtitle')}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                 <View style={{
@@ -174,7 +133,7 @@ export default function Index() {
                   <Ionicons name="search" size={20} color={theme.textSecondary} />
 
                   <TextInput
-                    placeholder="Name or number"
+                    placeholder={t('searchPlaceholder')}
                     placeholderTextColor={theme.textSecondary}
                     style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16 }}
                     value={searchText}
@@ -232,7 +191,7 @@ export default function Index() {
         />
 
 
-        {/* ==================== MODAL SẮP XẾP ==================== */}
+        {/*MODAL SẮP XẾP*/}
         <Modal
           visible={showSortMenu}
           transparent={true}
@@ -249,7 +208,7 @@ export default function Index() {
             activeOpacity={1}
             onPress={() => setShowSortMenu(false)}
           >
-            {/* Hộp Menu chính */}
+            {/*Hộp Menu chính*/}
             <View
               style={{
                 marginTop: 130,
@@ -266,7 +225,7 @@ export default function Index() {
                 elevation: 8,
               }}
             >
-              {/* ===== NHÓM 1: SẮP XẾP THEO TÊN ===== */}
+              {/*SẮP XẾP THEO TÊN*/}
               <Text
                 style={{
                   fontSize: 11,
@@ -279,7 +238,7 @@ export default function Index() {
                 }}
               >
 
-                THEO TÊN
+                {t('sortByName').toUpperCase()}
 
               </Text>
 
@@ -305,7 +264,7 @@ export default function Index() {
               >
                 <Ionicons name="arrow-up" size={16} color={theme.accent} />
                 <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
-                  Tên (A → Z)
+                  {t('sortNameAsc')}
                 </Text>
               </TouchableOpacity>
 
@@ -332,15 +291,14 @@ export default function Index() {
                 <Ionicons name="arrow-down" size={16} color={theme.accent} />
                 <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
-                  Tên (Z → A)
+                  {t('sortNameDesc')}
 
                 </Text>
               </TouchableOpacity>
 
-              {/* Đường kẻ ngăn cách */}
               <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 6, marginHorizontal: 12 }} />
 
-              {/* ===== NHÓM 2: SẮP XẾP THEO ID ===== */}
+              {/*SẮP XẾP THEO ID*/}
               <Text
                 style={{
                   fontSize: 11,
@@ -353,7 +311,7 @@ export default function Index() {
                 }}
               >
 
-                THEO ID
+                {t('sortById').toUpperCase()}
 
               </Text>
 
@@ -372,7 +330,7 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
+                  backgroundColor: (sortBy === 'id' && sortOrder === 'up')
                     ? theme.accentLight
                     : 'transparent',
                 }}
@@ -380,7 +338,7 @@ export default function Index() {
                 <Ionicons name="arrow-up" size={16} color={theme.accent} />
                 <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
-                  ID (Tăng dần)
+                  {t('sortIdAsc')}
 
                 </Text>
               </TouchableOpacity>
@@ -400,7 +358,7 @@ export default function Index() {
                   gap: 12,
                   borderRadius: 10,
                   marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
+                  backgroundColor: (sortBy === 'id' && sortOrder === 'down')
                     ? theme.accentLight
                     : 'transparent',
                 }}
@@ -408,7 +366,7 @@ export default function Index() {
                 <Ionicons name="arrow-down" size={16} color={theme.accent} />
                 <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
-                  ID (Giảm dần)
+                  {t('sortIdDesc')}
 
                 </Text>
               </TouchableOpacity>

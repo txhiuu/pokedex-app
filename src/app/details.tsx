@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
@@ -47,8 +48,6 @@ export default function Details() {
 
   const pokemonName = Array.isArray(params.name) ? params.name[0] : params.name;
 
-  console.log(params.name);
-
   const [pokemon, setPokemon] = useState<any>();
 
   const [species, setSpecies] = useState<any>();
@@ -63,7 +62,17 @@ export default function Details() {
 
   const tabs = ['Forms', 'Detail', 'Moves', 'Stats', 'Location', 'Type'];
 
+  const tabKeyMap: Record<string, any> = {
+    'Forms': 'tabForms',
+    'Detail': 'tabDetail',
+    'Moves': 'tabMoves',
+    'Stats': 'tabStats',
+    'Location': 'tabLocation',
+    'Type': 'tabType',
+  };
+
   const { theme, isDark } = useTheme();
+  const { t } = useLanguage();
 
   const formImages = [
     pokemon?.sprites?.front_default,
@@ -77,7 +86,7 @@ export default function Details() {
     (entry: any) => entry.language.name === 'en'
   );
 
-  const description = englishEntry ? englishEntry.flavor_text.replace(/[\n\f]/g, ' ') : "Loading...";
+  const description = englishEntry ? englishEntry.flavor_text.replace(/[\n\f]/g, ' ') : t('loading');
 
   const statsData = pokemon?.stats?.map((item: any) => {
 
@@ -93,7 +102,7 @@ export default function Details() {
     const displayName = statNames[item.stat.name] || item.stat.name;
 
 
-    const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171'; // Màu xanh/đỏ
+    const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171';
 
     return {
       name: displayName,
@@ -104,9 +113,8 @@ export default function Details() {
 
   const totalStats = pokemon?.stats?.reduce((sum: any, item: any) => sum + item.base_stat, 0);
 
-  // push vao statsData
   statsData?.push({
-    name: 'Total',
+    name: t('total'),
     value: totalStats,
     color: '#4ADE80',
     isTotal: true,
@@ -168,28 +176,22 @@ export default function Details() {
   function calculateTypeEffectiveness(typeDataArray: any[]) {
     const multipliers: Record<string, number> = {};
 
-    // Khởi tạo tất cả hệ = 1 (bình thường)
     ALL_TYPES.forEach((t) => (multipliers[t] = 1));
 
-    // Nhân hệ số từ mỗi hệ của Pokemon
     typeDataArray.forEach((typeData) => {
       const relations = typeData.damage_relations;
 
-      // Hệ này yếu với những hệ nào (x2)
       relations.double_damage_from.forEach((t: any) => {
         multipliers[t.name] *= 2;
       });
-      // Hệ này kháng những hệ nào (x0.5)
       relations.half_damage_from.forEach((t: any) => {
         multipliers[t.name] *= 0.5;
       });
-      // Hệ này miễn nhiễm với những hệ nào (x0)
       relations.no_damage_from.forEach((t: any) => {
         multipliers[t.name] *= 0;
       });
     });
 
-    // Phân loại
     const weaknesses: { type: string; multiplier: number }[] = [];
     const resistances: { type: string; multiplier: number }[] = [];
     const immunities: string[] = [];
@@ -200,7 +202,6 @@ export default function Details() {
       else if (mult < 1) resistances.push({ type, multiplier: mult });
     });
 
-    // Sắp xếp yếu nhất lên đầu
     weaknesses.sort((a, b) => b.multiplier - a.multiplier);
     resistances.sort((a, b) => a.multiplier - b.multiplier);
 
@@ -219,17 +220,14 @@ export default function Details() {
     }
   }, [pokemon]);
 
-  // Hàm đệ quy: Nhận vào 1 node, trả về mảng phẳng các bước tiến hóa
+  // Hàm đệ quy
   function parseEvolutionChain(node: any, result: any[] = []): any[] {
-    // 1. Thêm node hiện tại vào mảng kết quả
     result.push({
       name: node.species.name,
-      id: node.species.url.split('/').filter(Boolean).pop(), // Lấy ID từ URL
-      // Lấy điều kiện tiến hóa (nếu có)
+      id: node.species.url.split('/').filter(Boolean).pop(),
       condition: node.evolution_details?.[0] ? getEvolutionCondition(node.evolution_details[0]) : null,
     });
 
-    // 2. Duyệt tiếp các nhánh con (đệ quy)
     if (node.evolves_to && node.evolves_to.length > 0) {
       node.evolves_to.forEach((child: any) => parseEvolutionChain(child, result));
     }
@@ -237,14 +235,14 @@ export default function Details() {
     return result;
   }
 
-  //Hàm phụ: Chuyển điều kiện tiến hóa thành chuỗi dễ đọc
+  //Hàm phụ
   function getEvolutionCondition(details: any): string {
     if (details.min_level) return `Lv. ${details.min_level}`;
-    if (details.item) return `Dùng ${details.item.name.replace(/-/g, ' ')}`;
-    if (details.trigger?.name === 'trade') return 'Trao đổi';
-    if (details.min_happiness) return `Thân thiết ${details.min_happiness}`;
-    if (details.time_of_day) return `Vào ${details.time_of_day}`;
-    return 'Đặc biệt';
+    if (details.item) return `${t('useItem')} ${details.item.name.replace(/-/g, ' ')}`;
+    if (details.trigger?.name === 'trade') return t('trade');
+    if (details.min_happiness) return `${t('friendship')} ${details.min_happiness}`;
+    if (details.time_of_day) return `${t('atTime')} ${details.time_of_day}`;
+    return t('special');
   }
 
 
@@ -284,11 +282,9 @@ export default function Details() {
       const evolutionRes = await fetch(evolutionUrl);
       const evolutionData = await evolutionRes.json();
 
-      // Gọi hàm đệ quy để làm phẳng cây
       const flatChain = parseEvolutionChain(evolutionData.chain);
       setEvolutionChain(flatChain);
 
-      //
       const typeNames = PokemonData.types.map((t: any) => t.type.name);
 
       const typeResponses = await Promise.all(
@@ -297,7 +293,6 @@ export default function Details() {
 
       const typeData = await Promise.all(typeResponses.map((r: any) => r.json()));
 
-      // Gọi hàm tính toán
       const effectiveness = calculateTypeEffectiveness(typeData);
       setTypeEffectiveness(effectiveness);
 
@@ -322,7 +317,7 @@ export default function Details() {
         }}>
           <View style={[styles.header, { borderBottomColor: theme.divider }]}>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
-              {pokemonName ? pokemonName.toUpperCase() : "DETAILS"}
+              {pokemonName ? pokemonName.toUpperCase() : t('appName').toUpperCase()}
             </Text>
             <Text style={[styles.id, { color: theme.textSecondary }]}>
               #{String(pokemon?.id).padStart(3, "0")}
@@ -385,7 +380,7 @@ export default function Details() {
                   color: activeTab === tab ? theme.accent : theme.textSecondary,
                   fontSize: 20
                 }}>
-                  {tab}
+                  {t(tabKeyMap[tab])}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -396,7 +391,6 @@ export default function Details() {
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}>
 
               {formImages.map((formimage, index) => {
-                // Check isImage?
                 const isSelected = formimage === selectedImage;
 
                 return (
@@ -433,11 +427,11 @@ export default function Details() {
           {activeTab === 'Forms' && (
             <ScrollView style={{ marginTop: 10, marginBottom: 30 }}>
               <View>
-                {/*==================== EVOLUTION CHAIN ====================*/}
+                
                 {evolutionChain.length > 1 && (
                   <View style={{ marginTop: 25 }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: '#1F2937', textAlign: 'center' }}>
-                      --- CHUỖI TIẾN HÓA ---
+                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: theme.textPrimary, textAlign: 'center' }}>
+                      --- {t('evolutionChain')} ---
                     </Text>
 
                     {evolutionChain.map((evo, index) => (
@@ -495,10 +489,10 @@ export default function Details() {
 
                 )}
 
-                {/* ==================== 3. DESCRIPTION ==================== */}
+                {/*DESCRIPTION*/}
                 <View style={{ marginTop: 25 }}>
                   <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 8, textAlign: 'center' }}>
-                    Mega Evolution
+                    {t('megaEvolution')}
                   </Text>
 
                   <Text style={{ fontSize: 15, lineHeight: 24, color: theme.textMuted }}>
@@ -518,7 +512,7 @@ export default function Details() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
                 <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  Height
+                  {t('height')}
                 </Text>
 
                 <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
@@ -530,7 +524,7 @@ export default function Details() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
                 <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  Weight
+                  {t('weight')}
                 </Text>
 
                 <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
@@ -542,7 +536,7 @@ export default function Details() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
                 <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  Base Experience
+                  {t('baseExp')}
                 </Text>
 
                 <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
@@ -554,7 +548,7 @@ export default function Details() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
                 <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  Abilities
+                  {t('abilities')}
                 </Text>
 
                 <Text style={{ fontWeight: '600', fontSize: 15, textAlign: 'right', flex: 1, color: theme.textPrimary }}>
@@ -587,7 +581,6 @@ export default function Details() {
                     overflow: 'hidden',
                     marginLeft: 10
                   }}>
-                    {/*Thanh màu chạy bên trong*/}
                     <View style={{
 
                       width: `${(stat.value / 255) * 100}%`,
@@ -636,8 +629,8 @@ export default function Details() {
           {activeTab === 'Location' && (
             <View style={{ marginTop: 10 }}>
               {locationsData.length === 0 ? (
-                <Text style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: 20 }}>
-                  Pokemon này không xuất hiện trong tự nhiên.
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 20 }}>
+                  {t('noNaturalAppearance')}
                 </Text>
               ) : (
                 <View style={{ gap: 10 }}>
@@ -676,12 +669,12 @@ export default function Details() {
                   ))}
                 </View>
               )}
-              {/* heldItems */}
+              
               {heldItemsData.length > 0 && (
                 <View style={{ marginTop: 20 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#9a952f' }}>
 
-                    🎁 Vật phẩm có thể cầm
+                    {t('heldItems')}
 
                   </Text>
                   {heldItemsData.map((itemName: any, index: any) => (
@@ -714,7 +707,7 @@ export default function Details() {
               {typeEffectiveness.weaknesses.length > 0 && (
                 <View>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#DC2626' }}>
-                    Weak against:
+                    {t('weakAgainst')}
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                     {typeEffectiveness.weaknesses.map((w, i) => (
@@ -748,7 +741,7 @@ export default function Details() {
               {typeEffectiveness.resistances.length > 0 && (
                 <View>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#16A34A' }}>
-                    Resistant against:
+                    {t('resistantAgainst')}
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                     {typeEffectiveness.resistances.map((r, i) => (
@@ -782,7 +775,7 @@ export default function Details() {
               {typeEffectiveness.immunities.length > 0 && (
                 <View>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5B4B8A' }}>
-                    Normal damage from:
+                    {t('immuneTo')}
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                     {typeEffectiveness.immunities.map((type, i) => (
