@@ -74,11 +74,12 @@ export default function Details() {
   const { theme, isDark } = useTheme();
   const { t } = useLanguage();
 
+
   const formImages = [
-    pokemon?.sprites?.front_default,
-    pokemon?.sprites?.other?.['official-artwork']?.front_default,
-    pokemon?.sprites?.back_default,
-  ];
+    { label: 'Normal', url: pokemon?.sprites?.other?.['official-artwork']?.front_default },
+    { label: 'Shiny', url: pokemon?.sprites?.other?.['official-artwork']?.front_shiny },
+    { label: 'Home', url: pokemon?.sprites?.other?.home?.front_default },
+  ].filter((item) => item.url);
 
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
 
@@ -390,32 +391,50 @@ export default function Details() {
           {activeTab === 'Forms' && (
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}>
 
-              {formImages.map((formimage, index) => {
-                const isSelected = formimage === selectedImage;
+              {formImages.map((form, index) => {
+                const isSelected = form.url === selectedImage;
 
                 return (
                   <TouchableOpacity
                     key={index}
-                    onPress={() => setSelectedImage(formimage)}
+                    onPress={() => setSelectedImage(form.url)}
                     style={{
-                      height: 90,
-                      width: 90,
-                      borderRadius: 20,
-                      backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + (isDark ? '40' : '90'),
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      borderWidth: isSelected ? 2 : 0,
-                      borderColor: isSelected ? theme.accent : 'transparent',
+                      alignItems: 'center', 
+                      gap: 4,
                     }}
                   >
-                    <Image source={{ uri: formimage }}
+                    <View
                       style={{
-                        width: '80%',
-                        height: '80%',
-                        opacity: isSelected ? 1 : 0.4,
+                        height: 90,
+                        width: 90,
+                        borderRadius: 20,
+                        backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + (isDark ? '40' : '90'),
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderWidth: isSelected ? 2 : 0,
+                        borderColor: isSelected ? theme.accent : 'transparent',
                       }}
-                      resizeMode="contain"
-                    />
+                    >
+                      <Image
+                        source={{ uri: form.url }}
+                        style={{
+                          width: '80%',
+                          height: '80%',
+                          opacity: isSelected ? 1 : 0.4,
+                        }}
+                        resizeMode="contain"
+                      />
+                    </View>
+
+                    <Text style={{
+                      fontSize: 11,
+                      fontWeight: '600',
+                      color: isSelected ? theme.accent : theme.textSecondary,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}>
+                      {form.label}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -427,7 +446,7 @@ export default function Details() {
           {activeTab === 'Forms' && (
             <ScrollView style={{ marginTop: 10, marginBottom: 30 }}>
               <View>
-                
+
                 {evolutionChain.length > 1 && (
                   <View style={{ marginTop: 25 }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: theme.textPrimary, textAlign: 'center' }}>
@@ -669,7 +688,7 @@ export default function Details() {
                   ))}
                 </View>
               )}
-              
+
               {heldItemsData.length > 0 && (
                 <View style={{ marginTop: 20 }}>
                   <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#9a952f' }}>
