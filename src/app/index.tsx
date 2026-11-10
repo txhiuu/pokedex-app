@@ -4,7 +4,7 @@ import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TabBar from '../components/TabBar';
+import TabBar from '../components/layout/TabBar';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { colorByType } from '../utils/colorByType';

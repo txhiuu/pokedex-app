@@ -4,10 +4,17 @@ import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DetailTab from '../components/tabs/DetailTab';
+import FormsTab from '../components/tabs/FormsTab';
+import LocationTab from '../components/tabs/LocationTab';
+import MovesTab from '../components/tabs/MovesTab';
+import StatsTab from '../components/tabs/StatsTab';
+import TypeTab from '../components/tabs/TypeTab';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
+import { colorByType } from '../utils/colorByType';
 
 interface Pokemon {
   id: number;
@@ -21,28 +28,6 @@ interface PokemonType {
     url: string
   }
 }
-
-
-const colorByType: Record<string, string> = {
-  normal: "#A8A77A",
-  fire: "#EE8130",
-  water: "#6390F0",
-  electric: "#F7D02C",
-  grass: "#7AC74C",
-  ice: "#96D9D6",
-  fighting: "#C22E28",
-  poison: "#A33EA1",
-  ground: "#E2BF65",
-  flying: "#A98FF3",
-  psychic: "#F95587",
-  bug: "#A6B91A",
-  rock: "#B6A136",
-  ghost: "#735797",
-  dragon: "#6F35FC",
-  dark: "#705746",
-  steel: "#B7B7CE",
-  fairy: "#D685AD",
-};
 
 export default function Details() {
   const params = useLocalSearchParams()
@@ -214,9 +199,9 @@ export default function Details() {
 
 
   useEffect(() => {
-     if (pokemonName) {
-    fetchPokemonByName(pokemonName);
-  }
+    if (pokemonName) {
+      fetchPokemonByName(pokemonName);
+    }
   }, [pokemonName])
 
   useEffect(() => {
@@ -392,438 +377,46 @@ export default function Details() {
             ))}
           </ScrollView>
 
-          {/* Content of TB */}
-          {activeTab === 'Forms' && (
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, marginTop: 10 }}>
-
-              {formImages.map((form, index) => {
-                const isSelected = form.url === selectedImage;
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => setSelectedImage(form.url)}
-                    style={{
-                      alignItems: 'center', 
-                      gap: 4,
-                    }}
-                  >
-                    <View
-                      style={{
-                        height: 90,
-                        width: 90,
-                        borderRadius: 20,
-                        backgroundColor: (colorByType[pokemon?.types[0]?.type?.name] || '#CCCCCC') + (isDark ? '40' : '90'),
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderWidth: isSelected ? 2 : 0,
-                        borderColor: isSelected ? theme.accent : 'transparent',
-                      }}
-                    >
-                      <Image
-                        source={{ uri: form.url }}
-                        style={{
-                          width: '80%',
-                          height: '80%',
-                          opacity: isSelected ? 1 : 0.4,
-                        }}
-                        resizeMode="contain"
-                      />
-                    </View>
-
-                    <Text style={{
-                      fontSize: 11,
-                      fontWeight: '600',
-                      color: isSelected ? theme.accent : theme.textSecondary,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}>
-                      {form.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          )}
-
 
           {/* Tabs Forms */}
           {activeTab === 'Forms' && (
-            <ScrollView style={{ marginTop: 10, marginBottom: 30 }}>
-              <View>
-
-                {evolutionChain.length > 1 && (
-                  <View style={{ marginTop: 25 }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: theme.textPrimary, textAlign: 'center' }}>
-                      --- {t('evolutionChain')} ---
-                    </Text>
-
-                    {evolutionChain.map((evo, index) => (
-                      <View key={index}>
-                        {/*Thẻ Pokemon*/}
-                        <View style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor: theme.cardBg,
-                          borderRadius: 15,
-                          padding: 12,
-                          gap: 12,
-                        }}>
-                          <Image
-                            source={{ uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evo.id}.png` }}
-                            style={{ width: 70, height: 70 }}
-                            resizeMode="contain"
-                          />
-                          <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.textPrimary, textTransform: 'capitalize' }}>
-                              {evo.name}
-                            </Text>
-                            <Text style={{ fontSize: 13, color: theme.textSecondary }}>
-                              #{String(evo.id).padStart(3, '0')}
-                            </Text>
-                          </View>
-                        </View>
-
-                        {/*Mũi tên + Điều kiện tiến hóa*/}
-                        {index < evolutionChain.length - 1 && evolutionChain[index + 1].condition && (
-                          <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            paddingLeft: 30,
-                            paddingVertical: 8,
-                            gap: 8,
-                          }}>
-                            <Ionicons name="arrow-down" size={20} color="#9CA3AF" />
-                            <Text style={{
-                              fontSize: 13,
-                              color: theme.accent,
-                              fontWeight: '600',
-                              backgroundColor: theme.accentLight,
-                              paddingHorizontal: 10,
-                              paddingVertical: 4,
-                              borderRadius: 10,
-                            }}>
-                              {evolutionChain[index + 1].condition}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    ))}
-                  </View>
-
-                )}
-
-                {/*DESCRIPTION*/}
-                <View style={{ marginTop: 25 }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 8, textAlign: 'center' }}>
-                    {t('megaEvolution')}
-                  </Text>
-
-                  <Text style={{ fontSize: 15, lineHeight: 24, color: theme.textMuted }}>
-                    {description}
-                  </Text>
-                </View>
-              </View>
-            </ScrollView>
+            <FormsTab
+              pokemon={pokemon}
+              formImages={formImages}
+              selectedImage={selectedImage}
+              setSelectedImage={setSelectedImage}
+              evolutionChain={evolutionChain}
+              description={description}
+              theme={theme}
+              isDark={isDark}
+            />
           )}
 
 
           {/*Tabs Detail */}
           {activeTab === 'Detail' && (
-            <View style={{ marginTop: 10, gap: 12 }}>
-
-              {/*Height */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-
-                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  {t('height')}
-                </Text>
-
-                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
-                  {(pokemon?.height / 10).toFixed(1)} m
-                </Text>
-              </View>
-
-              {/*Weight */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-
-                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  {t('weight')}
-                </Text>
-
-                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
-                  {(pokemon?.weight / 10).toFixed(1)} kg
-                </Text>
-              </View>
-
-              {/*Base Experience */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-
-                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  {t('baseExp')}
-                </Text>
-
-                <Text style={{ fontWeight: '600', fontSize: 15, color: theme.textPrimary }}>
-                  {pokemon?.base_experience}
-                </Text>
-              </View>
-
-              {/* Abilities */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-
-                <Text style={{ color: theme.textSecondary, fontSize: 15 }}>
-                  {t('abilities')}
-                </Text>
-
-                <Text style={{ fontWeight: '600', fontSize: 15, textAlign: 'right', flex: 1, color: theme.textPrimary }}>
-                  {pokemon?.abilities?.map((item: any) => item.ability.name).join(', ')}
-                </Text>
-              </View>
-            </View>
+            <DetailTab pokemon={pokemon} theme={theme} />
           )}
 
 
           {/* Tabs Stats */}
           {activeTab === 'Stats' && (
-            <View style={{ marginTop: 10, gap: 12 }}>
-              {statsData?.map((stat: any, index: any) => (
-                <View key={index} style={{ flexDirection: 'row', alignItems: 'center' }}>
-
-                  <Text style={{ width: 70, color: theme.textSecondary, fontSize: 14 }}>
-                    {stat.name}
-                  </Text>
-
-                  <Text style={{ width: 40, fontWeight: 'bold', fontSize: 14, color: theme.textPrimary }}>
-                    {stat.value}
-                  </Text>
-
-                  <View style={{
-                    flex: 1,
-                    height: 6,
-                    backgroundColor: isDark ? '#2D2A4A' : '#E5E7EB',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    marginLeft: 10
-                  }}>
-                    <View style={{
-
-                      width: `${(stat.value / 255) * 100}%`,
-                      height: '100%',
-                      backgroundColor: stat.color,
-                      borderRadius: 3,
-
-                    }} />
-                  </View>
-
-                </View>
-              ))}
-            </View>
+            <StatsTab statsData={statsData || []} isDark={isDark} theme={theme} />
           )}
 
-
+          {/* Tabs Moves */}
           {activeTab === 'Moves' && (
-            <View style={{
-              marginTop: 10,
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 8
-            }}>
-
-              {movesData.map((moveName: any, index: any) => (
-                <View
-                  key={index}
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                  }}
-                >
-                  <Text style={{ color: theme.textPrimary, fontSize: 13 }}>
-                    {moveName}
-                  </Text>
-                </View>
-              ))}
-            </View>
+            <MovesTab movesData={movesData} theme={theme} />
           )}
 
           {/* Tabs Location */}
           {activeTab === 'Location' && (
-            <View style={{ marginTop: 10 }}>
-              {locationsData.length === 0 ? (
-                <Text style={{ color: theme.textSecondary, fontStyle: 'italic', textAlign: 'center', marginTop: 20 }}>
-                  {t('noNaturalAppearance')}
-                </Text>
-              ) : (
-                <View style={{ gap: 10 }}>
-                  {locationsData.map((loc: any, index: any) => (
-                    <View
-                      key={index}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        backgroundColor: theme.cardBg,
-                        padding: 12,
-                        borderRadius: 10,
-                      }}
-                    >
-
-                      <Ionicons name="location-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
-
-
-                      <Text style={{ color: theme.textPrimary, fontSize: 14, flex: 1 }}>
-                        {loc.name}
-                      </Text>
-
-                      {/* Tỉ lệ gặp*/}
-                      <View style={{
-                        backgroundColor: theme.cardBg,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 12,
-                        marginLeft: 8,
-                      }}>
-                        <Text style={{ color: '#ef1b1b', fontSize: 12, fontWeight: '600' }}>
-                          {loc.chance}%
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {heldItemsData.length > 0 && (
-                <View style={{ marginTop: 20 }}>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#9a952f' }}>
-
-                    {t('heldItems')}
-
-                  </Text>
-                  {heldItemsData.map((itemName: any, index: any) => (
-                    <View key={index} style={{
-
-                      backgroundColor: isDark ? '#3D2E14' : '#fff1d4',
-                      padding: 10,
-                      borderRadius: 10,
-                      marginBottom: 8
-
-                    }}>
-                      <Text style={{ color: isDark ? '#FBBF24' : '#B45309', fontWeight: '600' }}>
-
-                        {itemName}
-
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-
+            <LocationTab locationsData={locationsData} heldItemsData={heldItemsData} theme={theme} isDark={isDark} />
           )}
 
           {/* Tab Type */}
           {activeTab === 'Type' && (
-            <View style={{ marginTop: 10, gap: 20 }}>
-
-              {/*YẾU*/}
-              {typeEffectiveness.weaknesses.length > 0 && (
-                <View>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#DC2626' }}>
-                    {t('weakAgainst')}
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {typeEffectiveness.weaknesses.map((w, i) => (
-                      <View
-                        key={i}
-                        style={{
-                          backgroundColor: (colorByType[w.type] || '#CCCCCC') + (isDark ? '40' : '30'),
-                          borderWidth: 1,
-                          borderColor: colorByType[w.type] || '#CCCCCC',
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        <Text style={{ color: colorByType[w.type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
-                          {w.type}
-                        </Text>
-                        <Text style={{ color: theme.textPrimary, fontWeight: 'bold', fontSize: 12 }}>
-                          x{w.multiplier}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {/*KHÁNG*/}
-              {typeEffectiveness.resistances.length > 0 && (
-                <View>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#16A34A' }}>
-                    {t('resistantAgainst')}
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {typeEffectiveness.resistances.map((r, i) => (
-                      <View
-                        key={i}
-                        style={{
-                          backgroundColor: (colorByType[r.type] || '#CCCCCC') + '30',
-                          borderWidth: 1,
-                          borderColor: colorByType[r.type] || '#CCCCCC',
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        <Text style={{ color: colorByType[r.type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
-                          {r.type}
-                        </Text>
-                        <Text style={{ color: '#16A34A', fontWeight: 'bold', fontSize: 12 }}>
-                          x{r.multiplier}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {/*MIỄN NHIỄM*/}
-              {typeEffectiveness.immunities.length > 0 && (
-                <View>
-                  <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#5B4B8A' }}>
-                    {t('immuneTo')}
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {typeEffectiveness.immunities.map((type, i) => (
-                      <View
-                        key={i}
-                        style={{
-                          backgroundColor: (colorByType[type] || '#CCCCCC') + '30',
-                          borderWidth: 1,
-                          borderColor: colorByType[type] || '#CCCCCC',
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                        }}
-                      >
-                        <Text style={{ color: colorByType[type] || '#333', fontWeight: '600', textTransform: 'capitalize' }}>
-                          {type}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-            </View>
+            <TypeTab typeEffectiveness={typeEffectiveness} isDark={isDark} theme={theme} />
           )}
         </ScrollView>
       </LinearGradient>
