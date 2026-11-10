@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
@@ -102,12 +103,15 @@ export default function TabBar() {
         activeOpacity={0.7}
       >
         <Ionicons name="home" size={24} color={theme.textPrimary} />
-        <Text style={{color: theme.textSecondary}}>Home</Text>
+        <Text style={{ color: theme.textSecondary }}>Home</Text>
       </TouchableOpacity>
 
       {/*Nút Settings*/}
       <TouchableOpacity
-        onPress={() => router.push('/settings')}
+        onPress={() => {
+          Haptics.selectionAsync();
+          router.push('/settings');
+        }}
         style={{
           position: 'absolute',
           bottom: 22 + insets.bottom,
@@ -117,7 +121,7 @@ export default function TabBar() {
         activeOpacity={0.7}
       >
         <Ionicons name="settings-outline" size={24} color={theme.textSecondary} />
-        <Text style={{color: theme.textSecondary}}>Settings</Text>
+        <Text style={{ color: theme.textSecondary }}>Settings</Text>
       </TouchableOpacity>
 
       {/* Icon tym (bay ra) */}
@@ -170,6 +174,7 @@ export default function TabBar() {
 
       {/* Nút tròn trung tâm */}
       <View
+
         style={{
           position: 'absolute',
           bottom: Bar_HEIGHT - DoLonBtn / 2 + 15,
@@ -188,7 +193,10 @@ export default function TabBar() {
         }}
       >
         <TouchableOpacity
-          onPress={toggleMenu}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            toggleMenu();
+          }}
           style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
           activeOpacity={0.8}
         >

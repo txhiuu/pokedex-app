@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from "expo-router";
@@ -383,7 +384,10 @@ export default function Details() {
 
               {/* Nút trái tim */}
               <TouchableOpacity
-                onPress={toggleFavourite}
+                onPress={() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Rung vừa
+    toggleFavourite();
+  }}
                 activeOpacity={0.7}
                 style={{
                   position: 'absolute',

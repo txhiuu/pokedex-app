@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -12,7 +13,6 @@ import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
 import { useSettings } from '../hooks/useSettings';
 import { colorByType } from '../utils/colorByType';
-
 
 export default function Settings() {
 
@@ -123,7 +123,10 @@ export default function Settings() {
               rightElement={
                 <Switch
                   value={isDark}
-                  onValueChange={toggleTheme}
+                  onValueChange={(value) => {
+                    Haptics.selectionAsync();
+                    toggleTheme(value);
+                  }}
                   trackColor={{ false: '#E5E7EB', true: theme.accent }}
                   thumbColor={isDark ? '#FFFFFF' : '#FFFFFF'}
                 />
@@ -138,7 +141,10 @@ export default function Settings() {
               rightElement={
                 <Switch
                   value={animation}
-                  onValueChange={toggleAnimation}
+                  onValueChange={(value) => {
+                    Haptics.selectionAsync();
+                    toggleAnimation(value);
+                  }}
                   trackColor={{ false: '#E5E7EB', true: '#8B7BC7' }}
                   thumbColor={animation ? '#5B4B8A' : '#FFFFFF'}
                 />
@@ -335,7 +341,11 @@ export default function Settings() {
 
               {/* Tiếng Việt */}
               <TouchableOpacity
-                onPress={() => { setLanguage('vi'); setShowLangMenu(false); }}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setLanguage('vi');
+                  setShowLangMenu(false);
+                }}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -351,7 +361,11 @@ export default function Settings() {
 
               {/* English */}
               <TouchableOpacity
-                onPress={() => { setLanguage('en'); setShowLangMenu(false); }}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setLanguage('en');
+                  setShowLangMenu(false);
+                }}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',

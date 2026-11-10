@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
@@ -101,7 +102,7 @@ export default function Index() {
     );
   }
 
-   if (pokemons.length === 0 && isConnected === true) {
+  if (pokemons.length === 0 && isConnected === true) {
     return (
       <LinearGradient colors={theme.background as any} style={{ flex: 1, padding: 16, paddingTop: insets.top + 50 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' }}>
@@ -171,7 +172,10 @@ export default function Index() {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => setShowSortMenu(!showSortMenu)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowSortMenu(!showSortMenu);
+                  }}
                   style={{
                     backgroundColor: theme.accent,
                     padding: 12,
@@ -226,7 +230,12 @@ export default function Index() {
           <TouchableOpacity
             style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'flex-end' }}
             activeOpacity={1}
-            onPress={() => setShowSortMenu(false)}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setSortBy('name');
+              setSortOrder('up');
+              setShowSortMenu(false);
+            }}
           >
             <View style={{
               marginTop: 130,
