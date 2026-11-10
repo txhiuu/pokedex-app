@@ -8,6 +8,7 @@ import TabBar from '../components/layout/TabBar';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { useSearchHistory } from '../hooks/useSearchHistory';
 import { colorByType } from '../utils/colorByType';
 
 interface Pokemon {
@@ -24,44 +25,37 @@ interface PokemonType {
   }
 }
 
-
 export default function Index() {
-
   const { isConnected } = useNetworkStatus();
-  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+  const { addSearch } = useSearchHistory();
 
+  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [searchText, setSearchText] = useState('');
 
   const handleSearch = () => {
     if (!searchText.trim()) return;
 
+    addSearch(searchText);
     router.push(`/details?name=${searchText.toLowerCase().trim()}`);
-
     setSearchText('');
   };
 
   const [sortBy, setSortBy] = useState<'name' | 'id'>('id');
-
   const [sortOrder, setSortOrder] = useState<'up' | 'down'>('down');
-
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const sortedPokemons = [...pokemons].sort((a, b) => {
-
     let comparison = 0;
-
     if (sortBy === 'name') {
       comparison = a.name.localeCompare(b.name);
     } else {
       comparison = a.id - b.id;
     }
-
     return sortOrder === 'up' ? comparison : -comparison;
   });
 
   const { theme, isDark } = useTheme();
   const { t } = useLanguage();
-
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -71,7 +65,6 @@ export default function Index() {
   async function fetchPokemons() {
     try {
       const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=100")
-
       const data = await response.json();
 
       const detailedPokemons = await Promise.all(
@@ -86,25 +79,26 @@ export default function Index() {
           };
         })
       );
-
       setPokemons(detailedPokemons);
     } catch (e) {
       console.log(e)
     }
   }
+
   if (isConnected === false) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: theme.background[0] }}>
-      <Ionicons name="cloud-offline-outline" size={80} color={theme.textSecondary} />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.textPrimary, marginTop: 20, textAlign: 'center' }}>
-        Không có kết nối Internet
-      </Text>
-      <Text style={{ fontSize: 15, color: theme.textSecondary, marginTop: 10, textAlign: 'center' }}>
-        Vui lòng kiểm tra lại đường truyền mạng của bạn và thử lại.
-      </Text>
-    </View>
-  );
-}
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: theme.background[0] }}>
+        <Ionicons name="cloud-offline-outline" size={80} color={theme.textSecondary} />
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.textPrimary, marginTop: 20, textAlign: 'center' }}>
+          Không có kết nối Internet
+        </Text>
+        <Text style={{ fontSize: 15, color: theme.textSecondary, marginTop: 10, textAlign: 'center' }}>
+          Vui lòng kiểm tra lại đường truyền mạng của bạn và thử lại.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <>
       <LinearGradient
@@ -113,11 +107,10 @@ export default function Index() {
         end={{ x: 0, y: 1 }}
         style={{ flex: 1 }}
       >
-
         <FlatList
           data={sortedPokemons}
-
           numColumns={2}
+          keyExtractor={(item) => item.id.toString()}
           columnWrapperStyle={{
             justifyContent: 'space-between',
           }}
@@ -127,10 +120,8 @@ export default function Index() {
             padding: 16,
             paddingBottom: 120,
           }}
-
           ListHeaderComponent={
             <View>
-
               <Text style={[styles.header, { color: theme.textPrimary }]}>
                 {t('appName')}
               </Text>
@@ -148,10 +139,7 @@ export default function Index() {
                   borderWidth: 1,
                   borderColor: theme.border
                 }}>
-
-
                   <Ionicons name="search" size={20} color={theme.textSecondary} />
-
                   <TextInput
                     placeholder={t('searchPlaceholder')}
                     placeholderTextColor={theme.textSecondary}
@@ -172,15 +160,11 @@ export default function Index() {
                     alignItems: 'center',
                   }}
                 >
-
                   <Ionicons name="options-outline" size={20} color="white" />
-
                 </TouchableOpacity>
-
               </View>
             </View>
           }
-
           renderItem={({ item: pokemon }) => (
             <Link key={pokemon.name} href={{ pathname: "/details", params: { name: pokemon.name } }}
               style={{
@@ -192,11 +176,8 @@ export default function Index() {
                 padding: 10,
                 width: 170
               }}>
-
               <View>
-                <View style={{
-                  flexDirection: "row",
-                }}>
+                <View style={{ flexDirection: "row" }}>
                   <Image
                     source={{ uri: pokemon.image }}
                     style={{ width: 150, height: 150 }}
@@ -210,231 +191,95 @@ export default function Index() {
           )}
         />
 
-
-        {/*MODAL SẮP XẾP*/}
+        {/* MODAL SẮP XẾP */}
         <Modal
           visible={showSortMenu}
           transparent={true}
           animationType="fade"
           onRequestClose={() => setShowSortMenu(false)}
         >
-
           <TouchableOpacity
-            style={{
-              flex: 1,
-              backgroundColor: 'rgba(0,0,0,0.3)',
-              alignItems: 'flex-end',
-            }}
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'flex-end' }}
             activeOpacity={1}
             onPress={() => setShowSortMenu(false)}
           >
-            {/*Hộp Menu chính*/}
-            <View
-              style={{
-                marginTop: 130,
-                marginRight: 16,
-                backgroundColor: theme.surface,
-                borderRadius: 16,
-                paddingVertical: 8,
-                paddingHorizontal: 4,
-                width: 220,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 12,
-                elevation: 8,
-              }}
-            >
-              {/*SẮP XẾP THEO TÊN*/}
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: theme.textSecondary,
-                  fontWeight: '700',
-                  paddingHorizontal: 12,
-                  paddingTop: 8,
-                  paddingBottom: 6,
-                  letterSpacing: 0.5,
-                }}
-              >
-
+            <View style={{
+              marginTop: 130,
+              marginRight: 16,
+              backgroundColor: theme.surface,
+              borderRadius: 16,
+              paddingVertical: 8,
+              paddingHorizontal: 4,
+              width: 220,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              elevation: 8,
+            }}>
+              <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
                 {t('sortByName').toUpperCase()}
-
               </Text>
 
-              {/* Tên A → Z */}
               <TouchableOpacity
-                onPress={() => {
-                  setSortBy('name');
-                  setSortOrder('up');
-                  setShowSortMenu(false);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  gap: 12,
-                  borderRadius: 10,
-                  marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'name' && sortOrder === 'up')
-                    ? theme.accentLight
-                    : 'transparent',
-                }}
+                onPress={() => { setSortBy('name'); setSortOrder('up'); setShowSortMenu(false); }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
               >
+
                 <Ionicons name="arrow-up" size={16} color={theme.accent} />
+
                 <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
                   {t('sortNameAsc')}
+
                 </Text>
+
               </TouchableOpacity>
 
-              {/* Tên Z → A */}
               <TouchableOpacity
-                onPress={() => {
-                  setSortBy('name');
-                  setSortOrder('down');
-                  setShowSortMenu(false);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  gap: 12,
-                  borderRadius: 10,
-                  marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'name' && sortOrder === 'down')
-                    ? theme.accentLight
-                    : 'transparent',
-                }}
+                onPress={() => { setSortBy('name'); setSortOrder('down'); setShowSortMenu(false); }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
               >
-                <Ionicons name="arrow-down" size={16} color={theme.accent} />
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
 
+                <Ionicons name="arrow-down" size={16} color={theme.accent} />
+
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
                   {t('sortNameDesc')}
 
                 </Text>
+
               </TouchableOpacity>
 
               <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 6, marginHorizontal: 12 }} />
-
-              {/*SẮP XẾP THEO ID*/}
-              <Text
-                style={{
-                  fontSize: 11,
-                  color: theme.textSecondary,
-                  fontWeight: '700',
-                  paddingHorizontal: 12,
-                  paddingTop: 8,
-                  paddingBottom: 6,
-                  letterSpacing: 0.5,
-                }}
-              >
-
+              <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
                 {t('sortById').toUpperCase()}
-
               </Text>
-
-              {/* ID Tăng dần */}
               <TouchableOpacity
-                onPress={() => {
-                  setSortBy('id');
-                  setSortOrder('up');
-                  setShowSortMenu(false);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  gap: 12,
-                  borderRadius: 10,
-                  marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'id' && sortOrder === 'up')
-                    ? theme.accentLight
-                    : 'transparent',
-                }}
+                onPress={() => { setSortBy('id'); setSortOrder('up'); setShowSortMenu(false); }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
               >
                 <Ionicons name="arrow-up" size={16} color={theme.accent} />
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
-
-                  {t('sortIdAsc')}
-
-                </Text>
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdAsc')}</Text>
               </TouchableOpacity>
-
-              {/* ID Giảm dần */}
               <TouchableOpacity
-                onPress={() => {
-                  setSortBy('id');
-                  setSortOrder('down');
-                  setShowSortMenu(false);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  gap: 12,
-                  borderRadius: 10,
-                  marginHorizontal: 4,
-                  backgroundColor: (sortBy === 'id' && sortOrder === 'down')
-                    ? theme.accentLight
-                    : 'transparent',
-                }}
+                onPress={() => { setSortBy('id'); setSortOrder('down'); setShowSortMenu(false); }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
               >
                 <Ionicons name="arrow-down" size={16} color={theme.accent} />
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
-
-                  {t('sortIdDesc')}
-
-                </Text>
+                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdDesc')}</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
-
       </LinearGradient>
       <TabBar />
     </>
   );
 }
 
-
 const styles = StyleSheet.create({
-
-  header: {
-    paddingLeft: 16,
-    fontWeight: 'bold',
-    fontSize: 40,
-    color: '#5B4B8A',
-    paddingBottom: 5
-  },
-
-  header_son: {
-    paddingLeft: 16,
-    fontSize: 15,
-    paddingBottom: 10
-  },
-
-  name: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    textAlign: 'center',
-
-  },
-
-  type: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: 'gray',
-    textAlign: 'center'
-  },
-  id: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#666",
-    textAlign: "center",
-    marginTop: 4,
-  },
+  header: { paddingLeft: 16, fontWeight: 'bold', fontSize: 40, color: '#5B4B8A', paddingBottom: 5 },
+  header_son: { paddingLeft: 16, fontSize: 15, paddingBottom: 10 },
+  name: { fontSize: 25, fontWeight: 'bold', textAlign: 'center' },
+  type: { fontSize: 15, fontWeight: 'bold', color: 'gray', textAlign: 'center' },
+  id: { fontSize: 15, fontWeight: "600", color: "#666", textAlign: "center", marginTop: 4 },
 })

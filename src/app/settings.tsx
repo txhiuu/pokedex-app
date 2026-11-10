@@ -1,18 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Linking, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
+import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
 import { useSettings } from '../hooks/useSettings';
 import { colorByType } from '../utils/colorByType';
 
 
 export default function Settings() {
+
+  const { history, clearHistory } = useSearchHistory();
+
   const insets = useSafeAreaInsets();
 
   const { favourites } = useFavourites();
@@ -49,7 +54,6 @@ export default function Settings() {
   const handleOpenGitHub = () => {
     Linking.openURL('https://github.com/txhiuu');
   };
-
 
 
   return (
@@ -199,6 +203,43 @@ export default function Settings() {
           </View>
         </View>
 
+        {/*LỊCH SỬ TÌM KIẾM*/}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconCircle, { backgroundColor: '#FCE7F3' }]}>
+              <Ionicons name="time" size={16} color="#EC4899" />
+            </View>
+            <Text style={[styles.sectionTitle, { color: theme.accent }]}>Lịch sử tìm kiếm</Text>
+          </View>
+
+          <View style={[styles.sectionBody, { backgroundColor: theme.surface }]}>
+            {history.length === 0 ? (
+              <Text style={{ padding: 14, color: theme.textSecondary, fontStyle: 'italic' }}>
+                Chưa có lịch sử tìm kiếm.
+              </Text>
+            ) : (
+              <View style={{ paddingVertical: 10, gap: 8 }}>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 10 }}>
+                  {history.map((keyword) => (
+                    <TouchableOpacity
+                      key={keyword}
+                      onPress={() => router.push(`/details?name=${keyword}`)}
+                      style={{
+                        backgroundColor: theme.accentLight,
+                        paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15
+                      }}
+                    >
+                      <Text style={{ color: theme.accent, fontWeight: '500' }}>{keyword}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity onPress={clearHistory} style={{ alignItems: 'center', marginTop: 10, paddingVertical: 5 }}>
+                  <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>Xóa lịch sử</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
 
         {/*HỆ THỐNG*/}
         <View style={styles.section}>

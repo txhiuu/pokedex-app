@@ -46,7 +46,6 @@ export default function Details() {
 
   const [evolutionChain, setEvolutionChain] = useState<any[]>([]);
 
-  // 👇 BỔ SUNG 1: State lưu dữ liệu các dạng (Mega, Gmax...)
   const [varietiesData, setVarietiesData] = useState<{ label: string; url: string }[]>([]);
 
   const [activeTab, setActiveTab] = useState('Forms');
@@ -67,7 +66,6 @@ export default function Details() {
   const { theme, isDark } = useTheme();
   const { t } = useLanguage();
 
-  // 👇 BỔ SUNG 2: Gộp ảnh cơ bản và ảnh biến thể, chống trùng lặp
   const baseForms = [
     { label: 'Normal', url: pokemon?.sprites?.other?.['official-artwork']?.front_default },
     { label: 'Shiny', url: pokemon?.sprites?.other?.['official-artwork']?.front_shiny },
@@ -275,7 +273,6 @@ export default function Details() {
       setLocations(LocationData);
       markAsSeen(name);
 
-      // 👇 BỔ SUNG 3: Logic Fetch động các biến thể (Mega, Gmax...)
       const varieties = SpeciesData.varieties || [];
       const varietyPromises = varieties.map(async (v: any) => {
         const res = await fetch(v.pokemon.url);
@@ -308,7 +305,6 @@ export default function Details() {
 
       const fetchedVarieties = (await Promise.all(varietyPromises)).filter(Boolean);
       setVarietiesData(fetchedVarieties as { label: string; url: string }[]);
-      // 👆 KẾT THÚC BỔ SUNG 3
 
       const evolutionUrl = SpeciesData.evolution_chain.url;
       const evolutionRes = await fetch(evolutionUrl);
