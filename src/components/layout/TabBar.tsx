@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Modal, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -13,11 +14,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
 
+
 const { width } = Dimensions.get('window');
 const Bar_HEIGHT = 70;
 const DoLonBtn = 56;
 
 export default function TabBar() {
+
+  const [isIdentifying, setIsIdentifying] = useState(false);
+
   const insets = useSafeAreaInsets();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +36,56 @@ export default function TabBar() {
     setIsOpen(next);
     rotation.value = withSpring(next ? 45 : 0, { damping: 15 });
     menuProgress.value = withTiming(next ? 1 : 0, { duration: 250 });
+  };
+
+  const handleCameraPress = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Quyền truy cập bị từ chối", "Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này.");
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (pickerResult.canceled || !pickerResult.assets[0].base64) {
+      return;
+    }
+    toggleMenu();
+    setIsIdentifying(true);
+
+    try {
+
+      const API_URL = 'http://192.168.16.106:3000/api/identify';
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: `data:image/jpeg;base64,${pickerResult.assets[0].base64}`
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.pokemonName !== 'unknown') {
+        router.push(`/details?name=${data.pokemonName}`);
+      } else {
+        Alert.alert("Không tìm thấy Pokemon", "AI không thể nhận diện được Pokemon trong bức ảnh này. Vui lòng thử lại với ảnh khác rõ hơn.");
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Lỗi kết nối", "Không thể kết nối tới Server. Hãy kiểm tra lại IP và đảm bảo điện thoại và máy tính dùng chung Wi-Fi.");
+    } finally {
+      setIsIdentifying(false);
+    }
   };
 
   //Style animation cho nút tròn trung tâm (xoay)
@@ -153,6 +208,7 @@ export default function TabBar() {
       </Animated.View>
 
       {/* Icon camera (bay ra) */}
+
       <Animated.View
         style={[
           {
@@ -169,7 +225,13 @@ export default function TabBar() {
           rightIconStyle,
         ]}
       >
-        <Ionicons name="camera" size={24} color="white" />
+
+        <TouchableOpacity
+          onPress={handleCameraPress}
+          style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Ionicons name="camera" size={24} color="white" />
+        </TouchableOpacity>
       </Animated.View>
 
       {/* Nút tròn trung tâm */}
@@ -205,6 +267,32 @@ export default function TabBar() {
           </Animated.View>
         </TouchableOpacity>
       </View>
+
+      {/* Loading Overlay khi AI đang nhận diện */}
+      <Modal visible={isIdentifying} transparent={true} animationType="fade">
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <View style={{
+            backgroundColor: '#1E1B3A', 
+            padding: 30,
+            borderRadius: 20,
+            alignItems: 'center',
+            gap: 15
+          }}>
+            <ActivityIndicator size="large" color="#A78BFA" />
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+              AI đang nhận diện Pokemon...
+            </Text>
+            <Text style={{ color: '#A1A1B5', fontSize: 13 }}>
+              Vui lòng chờ trong giây lát
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
