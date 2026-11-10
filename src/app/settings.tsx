@@ -450,6 +450,7 @@ const styles = StyleSheet.create({
     color: '#5B4B8A',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
+    fontFamily: 'Poppins_700Bold'
   },
   sectionBody: {
     backgroundColor: '#FFFFFF',

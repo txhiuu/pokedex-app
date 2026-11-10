@@ -484,6 +484,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1a1a1a',
+    fontFamily: 'Poppins_700Bold' 
   },
   id: {
     fontSize: 15,

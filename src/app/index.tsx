@@ -278,9 +278,9 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingLeft: 16, fontWeight: 'bold', fontSize: 40, color: '#5B4B8A', paddingBottom: 5 },
+  header: { paddingLeft: 16, fontWeight: 'bold', fontSize: 40, color: '#5B4B8A', paddingBottom: 5, fontFamily: 'Poppins_700Bold' },
   header_son: { paddingLeft: 16, fontSize: 15, paddingBottom: 10 },
-  name: { fontSize: 25, fontWeight: 'bold', textAlign: 'center' },
+  name: { fontSize: 25, fontWeight: 'bold', textAlign: 'center', fontFamily: 'Poppins_600SemiBold' },
   type: { fontSize: 15, fontWeight: 'bold', color: 'gray', textAlign: 'center' },
   id: { fontSize: 15, fontWeight: "600", color: "#666", textAlign: "center", marginTop: 4 },
 })

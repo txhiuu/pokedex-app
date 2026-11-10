@@ -66,7 +66,7 @@ export default function FormsTab({
         <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 8, textAlign: 'center' }}>
           {t('megaEvolution')}
         </Text>
-        <Text style={{ fontSize: 15, lineHeight: 24, color: theme.textMuted }}>
+        <Text style={{ fontSize: 15, lineHeight: 24, color: theme.textMuted, textAlign: 'center' }}>
           {description}
         </Text>
       </View>
