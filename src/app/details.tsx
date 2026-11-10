@@ -13,6 +13,7 @@ import TypeTab from '../components/tabs/TypeTab';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useSeenPokemon } from '../hooks/useSeenPokemon';
 import { colorByType } from '../utils/colorByType';
 
@@ -30,6 +31,9 @@ interface PokemonType {
 }
 
 export default function Details() {
+
+  const { isConnected } = useNetworkStatus();
+  
   const params = useLocalSearchParams()
 
   const pokemonName = Array.isArray(params.name) ? params.name[0] : params.name;
@@ -291,7 +295,19 @@ export default function Details() {
     }
   }
 
-
+if (isConnected === false) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: theme.background[0] }}>
+      <Ionicons name="cloud-offline-outline" size={80} color={theme.textSecondary} />
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.textPrimary, marginTop: 20, textAlign: 'center' }}>
+        Không có kết nối Internet
+      </Text>
+      <Text style={{ fontSize: 15, color: theme.textSecondary, marginTop: 10, textAlign: 'center' }}>
+        Vui lòng kiểm tra lại đường truyền mạng của bạn và thử lại.
+      </Text>
+    </View>
+  );
+}
 
   return (
     <>
