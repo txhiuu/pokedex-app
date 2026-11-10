@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
+import { Skeleton } from 'moti/skeleton';
 import { useEffect, useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -100,6 +101,24 @@ export default function Index() {
     );
   }
 
+   if (pokemons.length === 0 && isConnected === true) {
+    return (
+      <LinearGradient colors={theme.background as any} style={{ flex: 1, padding: 16, paddingTop: insets.top + 50 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton
+              key={i}
+              colorMode={isDark ? 'dark' : 'light'}
+              width={170}
+              height={230}
+              radius={24}
+            />
+          ))}
+        </View>
+      </LinearGradient>
+    );
+  }
+
   return (
     <>
       <LinearGradient
@@ -173,9 +192,14 @@ export default function Index() {
                 backgroundColor: isDark
                   ? colorByType[pokemon.types[0].type.name] + '30'
                   : colorByType[pokemon.types[0].type.name] + '40',
-                borderRadius: 20,
+                borderRadius: 24,
                 padding: 10,
-                width: 170
+                width: 170,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: isDark ? 0.3 : 0.1,
+                shadowRadius: 8,
+                elevation: 5,
               }}>
               <View>
                 <View style={{ flexDirection: "row" }}>

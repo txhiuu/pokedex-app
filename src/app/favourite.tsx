@@ -85,11 +85,16 @@ export default function Favourite() {
                         style={{
                             // @ts-ignore
                             backgroundColor: isDark
-                                ? colorByType[pokemon.types[0].type.name] + '30' 
+                                ? colorByType[pokemon.types[0].type.name] + '30'
                                 : colorByType[pokemon.types[0].type.name] + '40',
-                            borderRadius: 20,
+                            borderRadius: 24,
                             padding: 10,
                             width: 170,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: isDark ? 0.3 : 0.1,
+                            shadowRadius: 8,
+                            elevation: 5,
                         }}
                     >
                         <Image source={{ uri: pokemon.image }} style={{ width: 150, height: 150 }} />

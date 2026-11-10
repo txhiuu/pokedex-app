@@ -431,7 +431,7 @@ export default function Details() {
           {activeTab === 'Forms' && (
             <FormsTab
               pokemon={pokemon}
-              formImages={allForms} // 👈 BỔ SUNG 4: Truyền allForms thay vì formImages cũ
+              formImages={allForms}
               selectedImage={selectedImage}
               setSelectedImage={setSelectedImage}
               evolutionChain={evolutionChain}
