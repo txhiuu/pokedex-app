@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
@@ -121,6 +122,7 @@ export default function Details() {
     isTotal: true,
   });
 
+  const insets = useSafeAreaInsets();
 
 
   const movesData = pokemon?.moves?.map((item: any) => {
@@ -212,7 +214,9 @@ export default function Details() {
 
 
   useEffect(() => {
-    fetchPokemonByName(pokemonName)
+     if (pokemonName) {
+    fetchPokemonByName(pokemonName);
+  }
   }, [pokemonName])
 
   useEffect(() => {
@@ -314,7 +318,8 @@ export default function Details() {
       >
         <ScrollView contentContainerStyle={{
           gap: 16,
-          padding: 16
+          padding: 16,
+          paddingTop: 70
         }}>
           <View style={[styles.header, { borderBottomColor: theme.divider }]}>
             <Text style={[styles.title, { color: theme.textPrimary }]}>

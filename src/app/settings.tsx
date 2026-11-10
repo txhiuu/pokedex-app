@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { Alert, Linking, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
@@ -12,6 +13,7 @@ import { colorByType } from '../utils/colorByType';
 
 
 export default function Settings() {
+  const insets = useSafeAreaInsets();
 
   const { favourites } = useFavourites();
   const { seenCount } = useSeenPokemon();
@@ -58,7 +60,7 @@ export default function Settings() {
       style={{ flex: 1 }}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 100, gap: 20 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100, gap: 20, paddingTop: insets.top + 50 }}
         showsVerticalScrollIndicator={false}
       >
         {/*STATS*/}

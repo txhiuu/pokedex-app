@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabBar from '../components/TabBar';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -58,6 +59,8 @@ export default function Index() {
   const { theme, isDark } = useTheme();
   const { t } = useLanguage();
 
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     fetchPokemons();
   }, [])
@@ -103,6 +106,7 @@ export default function Index() {
             justifyContent: 'space-between',
           }}
           contentContainerStyle={{
+            paddingTop: insets.top + 50,
             gap: 16,
             padding: 16,
             paddingBottom: 120,
@@ -135,7 +139,7 @@ export default function Index() {
                   <TextInput
                     placeholder={t('searchPlaceholder')}
                     placeholderTextColor={theme.textSecondary}
-                    style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16 }}
+                    style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16, padding: 10 }}
                     value={searchText}
                     onChangeText={setSearchText}
                     onSubmitEditing={handleSearch}

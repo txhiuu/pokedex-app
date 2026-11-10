@@ -3,12 +3,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useFavourites } from '../hooks/useFavourites';
 import { colorByType } from '../utils/colorByType';
 
 export default function Favourite() {
+    const insets = useSafeAreaInsets();
     const { favourites } = useFavourites();
     const [pokemonDetails, setPokemonDetails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -74,7 +76,7 @@ export default function Favourite() {
                 data={pokemonDetails}
                 numColumns={2}
                 columnWrapperStyle={{ justifyContent: 'space-between' }}
-                contentContainerStyle={{ gap: 16, padding: 16 }}
+                contentContainerStyle={{ gap: 16, padding: 16, paddingTop: insets.top + 50 }}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item: pokemon }) => (
                     <Link
