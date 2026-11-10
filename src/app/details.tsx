@@ -46,6 +46,9 @@ export default function Details() {
 
   const [evolutionChain, setEvolutionChain] = useState<any[]>([]);
 
+  // 👇 BỔ SUNG 1: State lưu dữ liệu các dạng (Mega, Gmax...)
+  const [varietiesData, setVarietiesData] = useState<{ label: string; url: string }[]>([]);
+
   const [activeTab, setActiveTab] = useState('Forms');
 
   const { isFav, toggleFavourite } = useFavourites(pokemonName as string);
@@ -64,12 +67,20 @@ export default function Details() {
   const { theme, isDark } = useTheme();
   const { t } = useLanguage();
 
-
-  const formImages = [
+  // 👇 BỔ SUNG 2: Gộp ảnh cơ bản và ảnh biến thể, chống trùng lặp
+  const baseForms = [
     { label: 'Normal', url: pokemon?.sprites?.other?.['official-artwork']?.front_default },
     { label: 'Shiny', url: pokemon?.sprites?.other?.['official-artwork']?.front_shiny },
     { label: 'Home', url: pokemon?.sprites?.other?.home?.front_default },
-  ].filter((item) => item.url);
+  ].filter(item => item.url);
+
+  const allFormsMap = new Map();
+  [...baseForms, ...varietiesData].forEach((form) => {
+    if (form.url && !allFormsMap.has(form.url)) {
+      allFormsMap.set(form.url, form);
+    }
+  });
+  const allForms = Array.from(allFormsMap.values());
 
   const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
 
@@ -92,7 +103,6 @@ export default function Details() {
 
     const displayName = statNames[item.stat.name] || item.stat.name;
 
-
     const barColor = item.base_stat >= 50 ? '#4ADE80' : '#F87171';
 
     return {
@@ -113,7 +123,6 @@ export default function Details() {
 
   const insets = useSafeAreaInsets();
 
-
   const movesData = pokemon?.moves?.map((item: any) => {
 
     const rawName = item.move.name;
@@ -131,7 +140,6 @@ export default function Details() {
     const cleanName = rawName.replace(/-/g, ' ');
 
     const capitalizedName = cleanName.replace(/\b\w/g, (char: any) => char.toUpperCase());
-
 
     const maxChance = Math.max(
       ...item.version_details.map((v: any) => v.max_chance)
@@ -200,8 +208,6 @@ export default function Details() {
     return { weaknesses, resistances, immunities };
   }
 
-
-
   useEffect(() => {
     if (pokemonName) {
       fetchPokemonByName(pokemonName);
@@ -239,7 +245,6 @@ export default function Details() {
     return t('special');
   }
 
-
   async function fetchPokemonByName(name: string) {
     try {
       const PokemonPromise = fetch(`https://pokeapi.co/api/v2/pokemon/${name}`)
@@ -256,9 +261,7 @@ export default function Details() {
       )
 
       if (!PokemonResponse.ok) {
-
         throw new Error("Không tìm thấy Pokemon!");
-
       }
 
       const [PokemonData, SpeciesData, LocationData] = await Promise.all([
@@ -267,10 +270,45 @@ export default function Details() {
         LocationResponse.json()
       ])
 
-      setPokemon(PokemonData),
-        setSpecies(SpeciesData),
-        setLocations(LocationData),
-        markAsSeen(name)
+      setPokemon(PokemonData);
+      setSpecies(SpeciesData);
+      setLocations(LocationData);
+      markAsSeen(name);
+
+      // 👇 BỔ SUNG 3: Logic Fetch động các biến thể (Mega, Gmax...)
+      const varieties = SpeciesData.varieties || [];
+      const varietyPromises = varieties.map(async (v: any) => {
+        const res = await fetch(v.pokemon.url);
+        const data = await res.json();
+        
+        const officialArt = data.sprites.other['official-artwork']?.front_default;
+        const homeArt = data.sprites.other?.home?.front_default;
+        const imageUrl = officialArt || homeArt;
+
+        if (!imageUrl) return null;
+
+        let label = v.pokemon.name;
+        if (v.is_default) {
+          label = 'Normal';
+        } else if (label.includes('-mega-x')) {
+          label = 'Mega X';
+        } else if (label.includes('-mega-y')) {
+          label = 'Mega Y';
+        } else if (label.includes('-mega')) {
+          label = 'Mega';
+        } else if (label.includes('-gmax')) {
+          label = 'Gigantamax';
+        } else {
+          const parts = label.split('-');
+          label = parts.length > 1 ? parts.slice(1).join(' ').toUpperCase() : 'Form';
+        }
+
+        return { label, url: imageUrl };
+      });
+
+      const fetchedVarieties = (await Promise.all(varietyPromises)).filter(Boolean);
+      setVarietiesData(fetchedVarieties as { label: string; url: string }[]);
+      // 👆 KẾT THÚC BỔ SUNG 3
 
       const evolutionUrl = SpeciesData.evolution_chain.url;
       const evolutionRes = await fetch(evolutionUrl);
@@ -295,19 +333,19 @@ export default function Details() {
     }
   }
 
-if (isConnected === false) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: theme.background[0] }}>
-      <Ionicons name="cloud-offline-outline" size={80} color={theme.textSecondary} />
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.textPrimary, marginTop: 20, textAlign: 'center' }}>
-        Không có kết nối Internet
-      </Text>
-      <Text style={{ fontSize: 15, color: theme.textSecondary, marginTop: 10, textAlign: 'center' }}>
-        Vui lòng kiểm tra lại đường truyền mạng của bạn và thử lại.
-      </Text>
-    </View>
-  );
-}
+  if (isConnected === false) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: theme.background[0] }}>
+        <Ionicons name="cloud-offline-outline" size={80} color={theme.textSecondary} />
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: theme.textPrimary, marginTop: 20, textAlign: 'center' }}>
+          Không có kết nối Internet
+        </Text>
+        <Text style={{ fontSize: 15, color: theme.textSecondary, marginTop: 10, textAlign: 'center' }}>
+          Vui lòng kiểm tra lại đường truyền mạng của bạn và thử lại.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <>
@@ -329,7 +367,6 @@ if (isConnected === false) {
             <Text style={[styles.id, { color: theme.textSecondary }]}>
               #{String(pokemon?.id).padStart(3, "0")}
             </Text>
-
 
             <View style={{
               width: '100%',
@@ -393,12 +430,11 @@ if (isConnected === false) {
             ))}
           </ScrollView>
 
-
           {/* Tabs Forms */}
           {activeTab === 'Forms' && (
             <FormsTab
               pokemon={pokemon}
-              formImages={formImages}
+              formImages={allForms} // 👈 BỔ SUNG 4: Truyền allForms thay vì formImages cũ
               selectedImage={selectedImage}
               setSelectedImage={setSelectedImage}
               evolutionChain={evolutionChain}
@@ -408,12 +444,10 @@ if (isConnected === false) {
             />
           )}
 
-
           {/*Tabs Detail */}
           {activeTab === 'Detail' && (
             <DetailTab pokemon={pokemon} theme={theme} />
           )}
-
 
           {/* Tabs Stats */}
           {activeTab === 'Stats' && (
