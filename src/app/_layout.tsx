@@ -2,13 +2,21 @@ import { Stack } from "expo-router";
 import { LanguageProvider } from '../context/LanguageContext';
 import { ThemeProvider } from '../context/ThemeContext';
 
+export const unstable_settings = {
+  initialRouteName: 'onboarding', 
+};
+
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <Stack>
-          <Stack.Screen name="index" options={{ title: "Pokedex", headerTitleAlign: 'center' }} />
+          <Stack.Screen 
+            name="onboarding" 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen name="index" options={{ title: "Pokedex", headerTitleAlign: 'center' }} /> 
           <Stack.Screen
             name="details"
             options={{
