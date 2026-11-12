@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -63,7 +64,9 @@ export default function TabBar() {
 
     try {
 
-      const API_URL = 'http://192.168.16.106:3000/api/identify';
+      const debuggerHost = Constants.expoConfig?.hostUri;
+      const localhost = debuggerHost?.split(':')[0];
+      const API_URL = `http://${localhost}:3000/api/identify`;
 
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -277,7 +280,7 @@ export default function TabBar() {
           alignItems: 'center'
         }}>
           <View style={{
-            backgroundColor: '#1E1B3A', 
+            backgroundColor: '#1E1B3A',
             padding: 30,
             borderRadius: 20,
             alignItems: 'center',
