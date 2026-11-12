@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from "expo-router";
 import { Skeleton } from 'moti/skeleton';
 import { useEffect, useState } from "react";
-import { FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TabBar from '../components/layout/TabBar';
 import { useLanguage } from '../context/LanguageContext';
@@ -29,6 +29,10 @@ interface PokemonType {
 }
 
 export default function Index() {
+
+  const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const { isConnected } = useNetworkStatus();
   const { addSearch } = useSearchHistory();
 
@@ -64,6 +68,21 @@ export default function Index() {
   useEffect(() => {
     fetchPokemons();
   }, [])
+
+  useEffect(() => {
+    async function fetchAllNames() {
+      try {
+        // Tải toàn bộ tên của mọi Pokemon (khoảng 1300 con)
+        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1500');
+        const data = await res.json();
+        // Chỉ lấy mảng tên
+        setAllPokemonNames(data.results.map((p: any) => p.name));
+      } catch (e) {
+        console.log("Lỗi tải tên:", e);
+      }
+    }
+    fetchAllNames();
+  }, []);
 
   async function fetchPokemons() {
     try {
@@ -120,194 +139,248 @@ export default function Index() {
     );
   }
 
-  return (
-    <>
-      <LinearGradient
-        colors={theme.background as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{ flex: 1 }}
-      >
-        <FlatList
-          data={sortedPokemons}
-          numColumns={2}
-          keyExtractor={(item) => item.id.toString()}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-          }}
-          contentContainerStyle={{
-            paddingTop: insets.top + 50,
-            gap: 16,
-            padding: 16,
-            paddingBottom: 120,
-          }}
-          ListHeaderComponent={
-            <View>
-              <Text style={[styles.header, { color: theme.textPrimary }]}>
-                {t('appName')}
-              </Text>
-              <Text style={[styles.header_son, { color: theme.textSecondary }]}>
-                {t('homeSubtitle')}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <View style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: theme.searchBg,
-                  borderRadius: 20,
-                  paddingHorizontal: 12,
-                  borderWidth: 1,
-                  borderColor: theme.border
-                }}>
-                  <Ionicons name="search" size={20} color={theme.textSecondary} />
-                  <TextInput
-                    placeholder={t('searchPlaceholder')}
-                    placeholderTextColor={theme.textSecondary}
-                    style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16, padding: 10 }}
-                    value={searchText}
-                    onChangeText={setSearchText}
-                    onSubmitEditing={handleSearch}
-                  />
-                </View>
+  // // Lọc tên dựa trên chữ người dùng đang gõ
+  // const suggestions = searchText.length > 0
+  //   ? allPokemonNames
+  //     .filter(name => name.toLowerCase().includes(searchText.toLowerCase().trim()))
+  //     .slice(0, 8)
+  //   : [];
 
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setShowSortMenu(!showSortMenu);
-                  }}
-                  style={{
-                    backgroundColor: theme.accent,
-                    padding: 12,
-                    borderRadius: 15,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Ionicons name="options-outline" size={20} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          }
-          renderItem={({ item: pokemon }) => (
-            <Link key={pokemon.name} href={{ pathname: "/details", params: { name: pokemon.name } }}
-              style={{
-                // @ts-ignore
-                backgroundColor: isDark
-                  ? colorByType[pokemon.types[0].type.name] + '30'
-                  : colorByType[pokemon.types[0].type.name] + '40',
-                borderRadius: 24,
-                padding: 10,
-                width: 170,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: isDark ? 0.3 : 0.1,
-                shadowRadius: 8,
-                elevation: 5,
-              }}>
-              <View>
-                <View style={{ flexDirection: "row" }}>
-                  <Image
-                    source={{ uri: pokemon.image }}
-                    style={{ width: 150, height: 150 }}
-                  />
-                </View>
-                <Text style={[styles.name, { color: theme.textPrimary }]}>{pokemon.name}</Text>
-                <Text style={[styles.type, { color: theme.textSecondary }]}>{pokemon.types[0].type.name}</Text>
-                <Text style={[styles.id, { color: theme.textMuted }]}>#{String(pokemon.id).padStart(3, "0")}</Text>
-              </View>
-            </Link>
-          )}
-        />
+  // Lọc tên dựa trên chữ người dùng đang gõ
+  const suggestions = searchText.length > 0 
+    ? allPokemonNames
+        .filter(name => name.toLowerCase().startsWith(searchText.toLowerCase().trim()))
+        .slice(0, 8) 
+    : [];
+ return (
+  <>
+    <LinearGradient
+      colors={theme.background as any}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={{ flex: 1, paddingTop: insets.top + 20 }}
+    >
+      
+      {/*PHẦN HEADER CỐ ĐỊNH*/}
+      <View style={{ paddingHorizontal: 16, zIndex: 100, marginTop: 20 }}>
+        <Text style={[styles.header, { color: theme.textPrimary }]}>
+          {t('appName')}
+        </Text>
+        <Text style={[styles.header_son, { color: theme.textSecondary }]}>
+          {t('homeSubtitle')}
+        </Text>
 
-        {/* MODAL SẮP XẾP */}
-        <Modal
-          visible={showSortMenu}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowSortMenu(false)}
-        >
+        {/* Thanh tìm kiếm */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <View style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: theme.searchBg,
+            borderRadius: 20,
+            paddingHorizontal: 12,
+            borderWidth: 1,
+            borderColor: theme.border
+          }}>
+            <Ionicons name="search" size={20} color={theme.textSecondary} />
+            <TextInput
+              placeholder={t('searchPlaceholder')}
+              placeholderTextColor={theme.textSecondary}
+              style={{ flex: 1, marginLeft: 8, color: theme.textPrimary, fontSize: 16, padding: 10 }}
+              value={searchText}
+              onChangeText={(text) => {
+                setSearchText(text);
+                setShowSuggestions(true);
+              }}
+              onSubmitEditing={() => {
+                setShowSuggestions(false);
+                handleSearch();
+              }}
+              onFocus={() => setShowSuggestions(true)}
+            />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={() => { setSearchText(''); setShowSuggestions(false); }}>
+                <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Nút Sort */}
           <TouchableOpacity
-            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'flex-end' }}
-            activeOpacity={1}
-            onPress={() => {
-              Haptics.selectionAsync();
-              setSortBy('name');
-              setSortOrder('up');
-              setShowSortMenu(false);
+            onPress={() => setShowSortMenu(!showSortMenu)}
+            style={{
+              backgroundColor: theme.accent,
+              padding: 12,
+              borderRadius: 15,
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
-            <View style={{
-              marginTop: 130,
-              marginRight: 16,
-              backgroundColor: theme.surface,
-              borderRadius: 16,
-              paddingVertical: 8,
-              paddingHorizontal: 4,
-              width: 220,
+            <Ionicons name="options-outline" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* DROPDOWN GỢI Ý (Nổi lên trên) */}
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={{
+            position: 'absolute',
+            top: 130,
+            left: 16,
+            right: 66,
+            backgroundColor: isDark ? '#1E1B3A' : '#FFFFFF',
+            borderRadius: 15,
+            paddingVertical: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: 10,
+            elevation: 20,
+            zIndex: 999,
+            maxHeight: 250,
+            overflow: 'hidden', 
+            marginTop: 20
+          }}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              {suggestions.map((name, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    setShowSuggestions(false);
+                    setSearchText('');
+                    router.push(`/details?name=${name}`);
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 12,
+                    paddingHorizontal: 15,
+                    borderBottomWidth: index === suggestions.length - 1 ? 0 : 1,
+                    borderBottomColor: theme.divider,
+                  }}
+                >
+                  <Ionicons name="search" size={16} color={theme.textSecondary} style={{ marginRight: 10 }} />
+                  <Text style={{ fontSize: 16, color: theme.textPrimary, textTransform: 'capitalize' }}>
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
+
+      {/*PHẦN DANH SÁCH POKEMON (CUỘN)*/}
+      <FlatList
+        data={sortedPokemons}
+        numColumns={2}
+        keyExtractor={(item) => item.id.toString()}
+        keyboardShouldPersistTaps="handled"
+        onScroll={() => setShowSuggestions(false)}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        contentContainerStyle={{
+          gap: 16,
+          padding: 16,
+          paddingBottom: 120,
+        }}
+        renderItem={({ item: pokemon }) => (
+          <Link key={pokemon.name} href={{ pathname: "/details", params: { name: pokemon.name } }}
+            style={{
+              // @ts-ignore
+              backgroundColor: isDark
+                ? colorByType[pokemon.types[0].type.name] + '30'
+                : colorByType[pokemon.types[0].type.name] + '40',
+              borderRadius: 24,
+              padding: 10,
+              width: 170,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.15,
-              shadowRadius: 12,
-              elevation: 8,
+              shadowOpacity: isDark ? 0.3 : 0.1,
+              shadowRadius: 8,
+              elevation: 5, 
             }}>
-              <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
-                {t('sortByName').toUpperCase()}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => { setSortBy('name'); setSortOrder('up'); setShowSortMenu(false); }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
-              >
-
-                <Ionicons name="arrow-up" size={16} color={theme.accent} />
-
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
-                  {t('sortNameAsc')}
-
-                </Text>
-
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => { setSortBy('name'); setSortOrder('down'); setShowSortMenu(false); }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
-              >
-
-                <Ionicons name="arrow-down" size={16} color={theme.accent} />
-
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>
-                  {t('sortNameDesc')}
-
-                </Text>
-
-              </TouchableOpacity>
-
-              <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 6, marginHorizontal: 12 }} />
-              <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
-                {t('sortById').toUpperCase()}
-              </Text>
-              <TouchableOpacity
-                onPress={() => { setSortBy('id'); setSortOrder('up'); setShowSortMenu(false); }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
-              >
-                <Ionicons name="arrow-up" size={16} color={theme.accent} />
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdAsc')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => { setSortBy('id'); setSortOrder('down'); setShowSortMenu(false); }}
-                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
-              >
-                <Ionicons name="arrow-down" size={16} color={theme.accent} />
-                <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdDesc')}</Text>
-              </TouchableOpacity>
+            <View>
+              <View style={{ flexDirection: "row" }}>
+                <Image
+                  source={{ uri: pokemon.image }}
+                  style={{ width: 150, height: 150 }}
+                />
+              </View>
+              <Text style={[styles.name, { color: theme.textPrimary }]}>{pokemon.name}</Text>
+              <Text style={[styles.type, { color: theme.textSecondary }]}>{pokemon.types[0].type.name}</Text>
+              <Text style={[styles.id, { color: theme.textMuted }]}>#{String(pokemon.id).padStart(3, "0")}</Text>
             </View>
-          </TouchableOpacity>
-        </Modal>
-      </LinearGradient>
-      <TabBar />
-    </>
-  );
+          </Link>
+        )}
+      />
+
+      {/* MODAL SẮP XẾP */}
+      <Modal
+        visible={showSortMenu}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSortMenu(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'flex-end' }}
+          activeOpacity={1}
+          onPress={() => setShowSortMenu(false)} 
+        >
+          <View style={{
+            marginTop: 130,
+            marginRight: 16,
+            backgroundColor: theme.surface,
+            borderRadius: 16,
+            paddingVertical: 8,
+            paddingHorizontal: 4,
+            width: 220,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+          }}>
+            <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
+              {t('sortByName').toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); setSortBy('name'); setSortOrder('up'); setShowSortMenu(false); }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
+            >
+              <Ionicons name="arrow-up" size={16} color={theme.accent} />
+              <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortNameAsc')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); setSortBy('name'); setSortOrder('down'); setShowSortMenu(false); }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'name' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
+            >
+              <Ionicons name="arrow-down" size={16} color={theme.accent} />
+              <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortNameDesc')}</Text>
+            </TouchableOpacity>
+            <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 6, marginHorizontal: 12 }} />
+            <Text style={{ fontSize: 11, color: theme.textSecondary, fontWeight: '700', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 6, letterSpacing: 0.5 }}>
+              {t('sortById').toUpperCase()}
+            </Text>
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); setSortBy('id'); setSortOrder('up'); setShowSortMenu(false); }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'up') ? theme.accentLight : 'transparent' }}
+            >
+              <Ionicons name="arrow-up" size={16} color={theme.accent} />
+              <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdAsc')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); setSortBy('id'); setSortOrder('down'); setShowSortMenu(false); }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, gap: 12, borderRadius: 10, marginHorizontal: 4, backgroundColor: (sortBy === 'id' && sortOrder === 'down') ? theme.accentLight : 'transparent' }}
+            >
+              <Ionicons name="arrow-down" size={16} color={theme.accent} />
+              <Text style={{ fontSize: 14, color: theme.textPrimary, flex: 1 }}>{t('sortIdDesc')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </LinearGradient>
+    <TabBar />
+  </>
+);
 }
 
 const styles = StyleSheet.create({
