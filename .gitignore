@@ -45,3 +45,6 @@ example
 
 server/node_modules
 server/.env
+
+.idea/
+*.iml
