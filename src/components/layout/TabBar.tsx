@@ -100,8 +100,16 @@ export default function TabBar() {
   const leftIconStyle = useAnimatedStyle(() => ({
     opacity: menuProgress.value,
     transform: [
-      { translateX: -70 * menuProgress.value },
-      { translateY: -60 * menuProgress.value },
+      { translateX: -80 * menuProgress.value },
+      { translateY: -50 * menuProgress.value },
+      { scale: menuProgress.value },
+    ],
+  }));
+
+  const centerIconStyle = useAnimatedStyle(() => ({
+    opacity: menuProgress.value,
+    transform: [
+      { translateY: -90 * menuProgress.value }, // Bay cao hơn 2 nút kia
       { scale: menuProgress.value },
     ],
   }));
@@ -110,12 +118,11 @@ export default function TabBar() {
   const rightIconStyle = useAnimatedStyle(() => ({
     opacity: menuProgress.value,
     transform: [
-      { translateX: 70 * menuProgress.value },
-      { translateY: -60 * menuProgress.value },
+      { translateX: 80 * menuProgress.value },
+      { translateY: -50 * menuProgress.value },
       { scale: menuProgress.value },
     ],
   }));
-
   // SVG Path cho thanh cong
   const pathD = `
     M 0 0
@@ -129,6 +136,7 @@ export default function TabBar() {
   `;
 
   const { theme, isDark } = useTheme();
+
 
   return (
     <View
@@ -210,8 +218,32 @@ export default function TabBar() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Icon camera (bay ra) */}
+      {/* Nut SO Sanh */}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            bottom: Bar_HEIGHT - 10,
+            left: width / 2 - DoLonBtn / 2,
+            width: DoLonBtn,
+            height: DoLonBtn,
+            borderRadius: DoLonBtn / 2,
+            backgroundColor: '#fae102',
+            justifyContent: 'center',
+            alignItems: 'center'
+          },
+          centerIconStyle]}>
+        <TouchableOpacity
+          onPress={() => {
+            toggleMenu();
+            router.push('/compare');
+          }}
+          style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+           <Ionicons name="flash" size={24} color="white" /> 
+        </TouchableOpacity>
+      </Animated.View>
 
+      {/* Icon camera (bay ra) */}
       <Animated.View
         style={[
           {

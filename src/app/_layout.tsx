@@ -48,6 +48,7 @@ export default function RootLayout() {
           />
           <Stack.Screen name="favourite" options={{ title: "Yêu thích", headerTitleAlign: 'center' }} />
           <Stack.Screen name="settings" options={{ title: "Cài đặt", headerTitleAlign: 'center' }} />
+          <Stack.Screen name="compare" options={{ title: "Compare Pokémon", headerBackTitle: "Pokedex" }} />
         </Stack>
       </LanguageProvider>
     </ThemeProvider>
