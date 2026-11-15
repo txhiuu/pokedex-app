@@ -77,6 +77,16 @@ export const vi = {
   selectLanguage: 'Chọn ngôn ngữ',
   vietnamese: 'Tiếng Việt',
   english: 'English',
+
+    // ============ FORMS TAB ============
+  catchRate: 'Tỉ lệ bắt',
+  training: 'Huấn luyện',
+  specialEvolutions: 'Tiến hóa đặc biệt',
+  growthRate: 'Tốc độ phát triển',
+  evYield: 'Điểm EV nhận được',
+  baseFriendship: 'Độ thân thiết cơ bản',
+  catchRateDesc: 'Khi ném Bóng Pokémon vào một Pokémon hoang dã, trò chơi sẽ dùng tỉ lệ bắt của Pokémon đó để tính toán khả năng bắt thành công. Tỉ lệ này có thể thay đổi tùy theo máu, loại bóng, trạng thái và các kỹ năng đặc biệt.',
+  catchRateNote: 'Tỉ lệ mẫu khi Pokémon đầy máu và không bị trạng thái nào',
 };
 
 export type TranslationKey = keyof typeof vi;

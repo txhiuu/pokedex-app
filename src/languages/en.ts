@@ -79,4 +79,14 @@ export const en: Record<TranslationKey, string> = {
   selectLanguage: 'Select Language',
   vietnamese: 'Tiếng Việt',
   english: 'English',
+
+    // ============ FORMS TAB ============
+  catchRate: 'Catch rate',
+  training: 'Training',
+  specialEvolutions: 'Special Evolutions',
+  growthRate: 'Growth Rate',
+  evYield: 'EV Yield',
+  baseFriendship: 'Base Friendship',
+  catchRateDesc: 'When a Poké Ball is thrown at a wild Pokémon, the game uses that Pokémon\'s catch rate in a formula to determine the chances of catching that Pokémon. The catch rate can change according to the health of the Pokémon, the type of Poké Ball, the status condition, and active special powers.',
+  catchRateNote: 'Sample rates for this Pokémon when on full HP and no status problems',
 };
