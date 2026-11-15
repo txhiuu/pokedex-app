@@ -435,6 +435,7 @@ export default function Details() {
           {activeTab === 'Forms' && (
             <FormsTab
               pokemon={pokemon}
+              species={species}
               formImages={allForms}
               selectedImage={selectedImage}
               setSelectedImage={setSelectedImage}
