@@ -53,7 +53,7 @@
 | <img src="./assets/screenshots/home-light.jpg" width="250"/> | <img src="./assets/screenshots/home-dark.jpg" width="250"/> | <img src="./assets/screenshots/details.jpg" width="250"/> |
 
 | Giao diện AI Camera | Tính năng So sánh | Trang Setting |
-| :---: | :---: |
+| :---: | :---: | :---: |
 | <img src="./assets/screenshots/ai-camera.jpg" width="250"/> | <img src="./assets/screenshots/compare.jpg" width="250"/> | <img src="./assets/screenshots/setting.jpg" width="250"/> |
 
 ---
